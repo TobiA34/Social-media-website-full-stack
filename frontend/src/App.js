@@ -6,13 +6,11 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-
-
+import Post from './pages/Post';
+ 
 function App() {
 
   return (
@@ -28,8 +26,12 @@ function App() {
                 style={{ maxHeight: "100px" }}
                 navbarScroll
               >
-                <Link to='/' href="#action1">Home</Link>
-                <Link to='/createpost' href="#action2">Create Post</Link>
+                <Link to="/" href="#action1">
+                  Home
+                </Link>
+                <Link to="/createpost" href="#action2">
+                  Create Post
+                </Link>
               </Nav>
             </Navbar.Collapse>
           </Container>
@@ -37,6 +39,8 @@ function App() {
 
         <Routes>
           <Route path="/" exact element={<Home />} />
+          <Route path="/post/:id" exact element={<Post />} />
+
           <Route path="/createpost" exact element={<CreatePost />} />
         </Routes>
       </BrowserRouter>

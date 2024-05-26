@@ -6,11 +6,12 @@ import {Formik, Form, Field, ErrorMessage} from "formik";
 import { useEffect, useState } from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-
-
+import { useNavigate } from "react-router-dom";
+ 
 function Home() {
 
       const [listOfPosts, setListOfPosts] = useState([]);
+      let navigate = useNavigate()
 
       useEffect(() => {
         axios.get("http://localhost:3001/posts").then((response) => {
@@ -26,10 +27,12 @@ function Home() {
         {listOfPosts.map((item, index) => (
           <Col key={index}>
             <div className="brand">
-              <Card className="d-flex justify-content-end flex-row p-5 ">
+              <Card className="d-flex justify-content-end flex-row  m-5" onClick={()=> {
+                navigate(`/post/${item.id}`)
+              }}>
 
                 <Card.Body className="p-0">
-                  <div className="p-2">
+                  <div>
                     <div className="justify-content-start align-items-start">
                       <Card.Header className='bg-danger'>
                         <Card.Title
