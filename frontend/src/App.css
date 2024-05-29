@@ -104,3 +104,13 @@ body {
 span {
   color: red;
 }
+
+
+.addCommentContainer button {
+  background-color: dodgerblue;
+  color: white;
+}
+
+.addCommentContainer input {
+  border: 2px solid dodgerblue;
+}
