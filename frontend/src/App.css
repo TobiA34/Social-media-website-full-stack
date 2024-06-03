@@ -114,3 +114,10 @@ span {
 .addCommentContainer input {
   border: 2px solid dodgerblue;
 }
+
+.remove-styling {
+  text-decoration: none;
+  border-style: none;
+  color: black;
+  margin: 10px 15px;
+}

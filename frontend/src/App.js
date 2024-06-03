@@ -10,6 +10,9 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Post from './pages/Post';
+import Login from './pages/Login';
+import Regstration from './pages/Regstration';
+ 
  
 function App() {
 
@@ -26,11 +29,25 @@ function App() {
                 style={{ maxHeight: "100px" }}
                 navbarScroll
               >
-                <Link to="/" href="#action1">
+                <Link className="remove-styling" to="/" href="#action1">
                   Home
                 </Link>
-                <Link to="/createpost" href="#action2">
+                <Link
+                  className="remove-styling"
+                  to="/createpost"
+                  href="#action2"
+                >
                   Create Post
+                </Link>
+                <Link className="remove-styling" to="/login" href="#action2">
+                  Login
+                </Link>
+                <Link
+                  className="remove-styling"
+                  to="/regstration"
+                  href="#action2"
+                >
+                  Registration
                 </Link>
               </Nav>
             </Navbar.Collapse>
@@ -40,8 +57,10 @@ function App() {
         <Routes>
           <Route path="/" exact element={<Home />} />
           <Route path="/post/:id" exact element={<Post />} />
-
           <Route path="/createpost" exact element={<CreatePost />} />
+
+          <Route path="/login" exact element={<Login />} />
+          <Route path="/regstration" exact element={<Regstration />} />
         </Routes>
       </BrowserRouter>
     </div>
