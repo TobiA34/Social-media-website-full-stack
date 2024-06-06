@@ -26,14 +26,26 @@ import Card from "react-bootstrap/Card";
 
  const addComment = () => {
    axios
-     .post("http://localhost:3001/comments", {
-       commentBody: newComment,
-       PostId: id,
-     })
+     .post(
+       "http://localhost:3001/comments",
+       {
+         commentBody: newComment,
+         PostId: id,
+       },
+       {
+         headers: {
+           accessToken: localStorage.getItem("accessToken"),
+         },
+       }
+     )
      .then((response) => {
-       const commentToAdd = { commentBody: newComment };
+      if(response.data.error){
+        alert(response.data.error) 
+      } else {
+       const commentToAdd = { commentBody: newComment, username: response.data.username};
        setComments([...comments, commentToAdd]);
        setNewComment("");
+      }
      });
  };
 
@@ -96,7 +108,9 @@ import Card from "react-bootstrap/Card";
                   return (
                     <div key={key} className="comment">
                       <Card className=" d-flex my-3">
-                        <h1>{comment.commentBody}</h1>
+                        <div className="d-flex"></div>
+                        <label>{comment.username}:</label>
+                        <p>{comment.commentBody}</p>
                       </Card>
                     </div>
                   );
