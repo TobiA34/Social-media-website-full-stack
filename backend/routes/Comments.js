@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Comments } = require("../models");
-const {validateToken} = require('../middlewares/Authmiddlewares')
+const { validateToken } = require("../middlewares/Authmiddlewares");
 
 router.get("/:postId", async (req, res) => {
   const postId = req.params.postId;
@@ -11,10 +11,22 @@ router.get("/:postId", async (req, res) => {
 
 router.post("/", validateToken, async (req, res) => {
   const comment = req.body;
-  const username = req.user.username
-  comment.username = username
+  const username = req.user.username;
+  comment.username = username;
   await Comments.create(comment);
   res.json(comment);
+});
+
+router.delete("/:commentId", validateToken, async (req, res) => {
+  const commentId = req.params.commentId;
+
+  await Comments.destroy({
+    where: {
+      id: commentId,
+    },
+  });
+
+  res.json("DELETED SUCCESSFULLY");
 });
 
 module.exports = router;
