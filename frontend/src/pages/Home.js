@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import { AuthContext } from "../helpers/AuthContext";
+ import { useParams } from "react-router-dom";
 
 function Home() {
   const [listOfPosts, setListOfPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-  const { authState } = useContext(AuthContext);
+   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
-
+  let { id } = useParams();
+ 
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
       navigate("/login");
@@ -67,8 +69,9 @@ function Home() {
   };
 
   return (
-    <div>
-      {listOfPosts.map((value, key) => {
+    <div className="d-flex flex-column align-items-center gap-3 m-2 ">
+      
+       {listOfPosts.map((value, key) => {
         return (
           <div key={key} className="post">
             <div className="title"> {value.title} </div>
@@ -78,11 +81,14 @@ function Home() {
                 navigate(`/post/${value.id}`);
               }}
             >
-              {value.postText}
+              {value.post}
             </div>
+            <p>Category: {value.Category.category_name}</p>
             <div className="footer">
               <div className="username">
-                <Link to={`/profile/${value.UserId}`}> {value.username} </Link>
+                <div className="username">
+                  <Link to={`/profile/${value.UserId}`}>{value.username}</Link>
+                </div>
               </div>
               <div className="buttons">
                 <ThumbUpAltIcon

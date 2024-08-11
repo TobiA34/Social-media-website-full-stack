@@ -7,6 +7,7 @@ function Post() {
   let { id } = useParams();
   const [postObject, setPostObject] = useState({});
   const [comments, setComments] = useState([]);
+  const [listOfCategories, setListOfCategories] = useState([]);
   const [newComment, setNewComment] = useState("");
   const { authState } = useContext(AuthContext);
 
@@ -23,6 +24,13 @@ function Post() {
   }, []);
 
   const addComment = () => {
+            axios
+              .get(`http://localhost:3001/categories/byuserId/${id}`)
+              .then((response) => {
+                setListOfCategories(response.data);
+                console.log(response.data);
+              });
+
     axios
       .post(
         "http://localhost:3001/comments",
@@ -51,6 +59,7 @@ function Post() {
   };
 
   const deleteComment = (id) => {
+    
     axios
       .delete(`http://localhost:3001/comments/${id}`, {
         headers: { accessToken: localStorage.getItem("accessToken") },
@@ -87,7 +96,6 @@ function Post() {
                   deletePost(postObject.id);
                 }}
               >
-                {" "}
                 Delete Post
               </button>
             )}

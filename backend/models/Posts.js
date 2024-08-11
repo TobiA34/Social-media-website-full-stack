@@ -4,13 +4,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    postText: {
+    post: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    username: {
+    ingredients: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    CategoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "Categories",
+        key: "id",
+      },
     },
   });
 
@@ -22,6 +30,10 @@ module.exports = (sequelize, DataTypes) => {
     Posts.hasMany(models.Likes, {
       onDelete: "cascade",
     });
+
+    Posts.belongsTo(models.Categories, { foreignKey: "CategoryId" });
   };
+  
   return Posts;
 };
+
