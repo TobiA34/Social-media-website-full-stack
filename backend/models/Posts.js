@@ -28,10 +28,15 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Posts.belongsTo(models.Categories, { foreignKey: "CategoryId" });
+    Posts.belongsTo(models.Users, { foreignKey: "UserId" });
+
 
     Posts.hasMany(models.Steps, { foreignKey: "PostId" });
+Posts.belongsTo(models.Users, { foreignKey: "UserId" });
 
   };
+
+
   
   return Posts;
 };
