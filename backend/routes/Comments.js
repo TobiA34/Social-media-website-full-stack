@@ -3,6 +3,8 @@ const router = express.Router();
 const { Comments } = require("../models");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 
+// Also you need to have a edit and remove button so i can edit a step and also remove em and it updates on the ui
+
 router.get("/:postId", async (req, res) => {
   const postId = req.params.postId;
   const comments = await Comments.findAll({ where: { PostId: postId } });

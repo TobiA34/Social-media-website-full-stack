@@ -8,10 +8,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    ingredients: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     CategoryId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -32,6 +28,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Posts.belongsTo(models.Categories, { foreignKey: "CategoryId" });
+
+    Posts.hasMany(models.Steps, { foreignKey: "PostId" });
+
   };
   
   return Posts;

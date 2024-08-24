@@ -39,7 +39,9 @@ function CreateCategories() {
 
   return (
     <div>
-      <div className="createPostPage">
+      <div className="createPostPage d-flex flex-column ">
+        <h1 className="text-center my-5">Create a category</h1>
+
         <Formik
           initialValues={initialValues}
           onSubmit={onSubmit}
