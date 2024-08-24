@@ -6,11 +6,14 @@ function Profile() {
   let { id } = useParams();
   let navigate = useNavigate();
   const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+
   const [listOfPosts, setListOfPosts] = useState([]);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/auth/basicinfo/${id}`).then((response) => {
       setUsername(response.data.username);
+      setPassword(response.data.password)
     });
 
     axios.get(`http://localhost:3001/posts/byuserId/${id}`).then((response) => {
@@ -22,30 +25,10 @@ function Profile() {
     <div className="profilePageContainer">
       <div className="basicInfo">
         {" "}
-        <h1> Username: {username} </h1>
-      </div>
-      <div className="listOfPosts">
-        {listOfPosts.map((value, key) => {
-          return (
-            <div key={key} className="post">
-              <div className="title"> {value.title} </div>
-              <div
-                className="body"
-                onClick={() => {
-                  navigate(`/post/${value.id}`);
-                }}
-              >
-                {value.postText}
-              </div>
-              <div className="footer">
-                <div className="username">{value.username}</div>
-                <div className="buttons">
-                  <label> {value.Likes.length}</label>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        <h1 className="text-center"> Username: {username} </h1>
+        <hr />  
+        <h3>Bookmark recipe</h3>
+       
       </div>
     </div>
   );

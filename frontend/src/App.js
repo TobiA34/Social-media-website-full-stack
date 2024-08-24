@@ -13,9 +13,8 @@ import axios from "axios";
 import CreateCategories from "./pages/CreateCategories";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import NavDropdown from "react-bootstrap/NavDropdown";
-
-function App() {
+import CreateSteps from "./pages/CreateSteps";
+ function App() {
  
    const [authState, setAuthState] = useState({
     username: "",
@@ -51,7 +50,7 @@ function App() {
   return (
     <div className="">
       <AuthContext.Provider value={{ authState, setAuthState }}>
-        <Router> 
+        <Router>
           <div>
             <Navbar expand="lg" className="bg-body-tertiary">
               <Navbar.Brand href="#/">DishSwap</Navbar.Brand>
@@ -74,6 +73,7 @@ function App() {
                       <Nav.Link as={Link} to="/" className="remove-style">
                         Home Page
                       </Nav.Link>
+
                       <Nav.Link
                         as={Link}
                         to="/createpost"
@@ -92,7 +92,11 @@ function App() {
                   )}
                 </Nav>
                 <div className="loggedInContainer">
-                  <h1>{authState.username} </h1>
+                  <h1>
+                    <Link to={`/profile/${authState.id}`}>
+                      {authState.username}{" "}
+                    </Link>
+                  </h1>
                   {authState.status && (
                     <button onClick={logout}> Logout</button>
                   )}
@@ -104,14 +108,14 @@ function App() {
           <Routes>
             <Route path="/" exact element={<Home />} />
             <Route path="/post/:id" exact element={<Post />} />
-            <Route path="/createpost" exact element={<CreatePost />} />
+            <Route path="/steps/:id" exact element={<CreateSteps />} />
+             <Route path="/createpost" exact element={<CreatePost />} />
             <Route
               path="/createcategories"
               exact
               element={<CreateCategories />}
             />
             <Route path="/home/:id" exact element={<Home />} />
-
             <Route path="/login" exact element={<Login />} />
             <Route path="/registration" exact element={<Registration />} />
             <Route path="/profile/:id" exact element={<Profile />} />

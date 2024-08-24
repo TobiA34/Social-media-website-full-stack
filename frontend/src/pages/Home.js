@@ -1,18 +1,20 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import { AuthContext } from "../helpers/AuthContext";
- import { useParams } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-regular-svg-icons";
 
 function Home() {
   const [listOfPosts, setListOfPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-   const { authState } = useContext(AuthContext);
+  const [searchQuery, setSearchQuery] = useState(""); // Add searchQuery state
+  const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
   let { id } = useParams();
- 
+
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
       navigate("/login");
@@ -30,7 +32,7 @@ function Home() {
           );
         });
     }
-  }, []);
+  }, [navigate]);
 
   const likeAPost = (postId) => {
     axios
@@ -59,7 +61,7 @@ function Home() {
         if (likedPosts.includes(postId)) {
           setLikedPosts(
             likedPosts.filter((id) => {
-              return id != postId;
+              return id !== postId;
             })
           );
         } else {
@@ -68,44 +70,75 @@ function Home() {
       });
   };
 
-  return (
-    <div className="d-flex flex-column align-items-center gap-3 m-2 ">
-      
-       {listOfPosts.map((value, key) => {
-        return (
-          <div key={key} className="post">
-            <div className="title"> {value.title} </div>
-            <div
-              className="body"
-              onClick={() => {
-                navigate(`/post/${value.id}`);
-              }}
-            >
-              {value.post}
-            </div>
-            <p>Category: {value.Category.category_name}</p>
-            <div className="footer">
-              <div className="username">
-                <div className="username">
-                  <Link to={`/profile/${value.UserId}`}>{value.username}</Link>
-                </div>
-              </div>
-              <div className="buttons">
-                <ThumbUpAltIcon
-                  onClick={() => {
-                    likeAPost(value.id);
-                  }}
-                  className={
-                    likedPosts.includes(value.id) ? "unlikeBttn" : "likeBttn"
-                  }
-                />
+  // Filter posts based on the search query
+  const filteredPosts = listOfPosts.filter((post) =>
+    post.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-                <label> {value.Likes.length}</label>
+  return (
+    <div className="container">
+      <input
+        type="text"
+        className="form-control input w-100 rounded my-2"
+        placeholder="Search for a recipe..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)} // Update searchQuery state on input change
+      />
+      <div className="row">
+        {filteredPosts.map((value, key) => (
+          <div
+            key={key}
+            className="col-lg-4 col-md-6 col-sm-12 mb-4 mt-4 d-flex"
+          >
+            <div className="card h-100">
+              <div className="card-body">
+                <div className="d-flex justify-content-between">
+                  <h5 className="card-title">{value.title}</h5>
+                  <div className="card-text btn btn-danger rounded-5 pill">
+                    <h1>{value.Category.category_name}</h1>
+                  </div>
+                </div>
+                <p className="card-text">{value.post}</p>
+
+                <div className="d-flex justify-content-between">
+                  <Link
+                    to={`/profile/${value.UserId}`}
+                    className="btn btn-link"
+                  >
+                    {value.username}
+                  </Link>
+                  <div className="d-flex align-items-center">
+                    <ThumbUpAltIcon
+                      onClick={() => likeAPost(value.id)}
+                      className={
+                        likedPosts.includes(value.id)
+                          ? "unlikeBttn"
+                          : "likeBttn"
+                      }
+                    />
+                    <label className="ms-2">{value.Likes.length}</label>
+                    <FontAwesomeIcon icon={faStar} className="ms-3" />
+                  </div>
+                </div>
+                <div className="mt-3 d-flex gap-5 justify-content-between align-items-center">
+                  <Button
+                    variant="dark"
+                    onClick={() => navigate(`/post/${value.id}`)}
+                  >
+                    View Recipe
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(`/steps/${value.id}`)}
+                  >
+                    Add Steps
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }

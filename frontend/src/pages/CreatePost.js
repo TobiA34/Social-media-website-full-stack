@@ -14,8 +14,7 @@ function CreatePost() {
    const initialValues = {
      title: "",
      post: "",
-     ingredients: "",
-     CategoryId: undefined,
+      CategoryId: undefined,
    };
  
   let navigate = useNavigate();
@@ -34,8 +33,7 @@ function CreatePost() {
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("You must input a Title!"),
     post: Yup.string().required(),
-    ingredients: Yup.string().required(),
-     
+      
   });
  
 
@@ -63,7 +61,9 @@ const updateDropdown = (event) => {
 
  
   return (
-    <div className="createPostPage">
+    <div className="createPostPage d-flex flex-column">
+      <h1 className="my-5">Create A Post</h1>
+
       <Formik
         initialValues={initialValues}
         onSubmit={onSubmit}
@@ -88,15 +88,6 @@ const updateDropdown = (event) => {
             placeholder="(Ex. Post...)"
           />
 
-          <label>ingredients: </label>
-          <ErrorMessage name="ingredients" component="span" />
-          <Field
-            autocomplete="off"
-            id="inputCreatePost"
-            name="ingredients"
-            placeholder="(Ex. ingredients...)"
-          />
-
           <Field
             component="select"
             id="CategoryId"
@@ -111,11 +102,11 @@ const updateDropdown = (event) => {
             ))}
           </Field>
 
-          {initialValues.categoryId !== null && <p>category id: {initialValues.categoryId}</p>}
+          {initialValues.categoryId !== null && (
+            <p>category id: {initialValues.categoryId}</p>
+          )}
 
-          <button type="submit">
-            Create Post
-          </button>
+          <button type="submit">Create Post</button>
         </Form>
       </Formik>
     </div>

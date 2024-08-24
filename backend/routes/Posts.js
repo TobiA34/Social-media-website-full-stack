@@ -1,14 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { Posts, Likes,Categories } = require("../models");
+const { Posts, Likes,Categories,Steps } = require("../models");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
  
 router.get("/", validateToken, async (req, res) => {
   const listOfPosts = await Posts.findAll({
-     include: [
+    include: [
       {
         model: Categories,
+        required: false,
+      },
+      {
+        model: Steps,
         required: false,
       },
       Likes,
