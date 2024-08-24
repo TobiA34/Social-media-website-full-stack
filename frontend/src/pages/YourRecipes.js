@@ -7,10 +7,10 @@ import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-regular-svg-icons";
 
-function Home() {
+function YourRecipes() {
   const [listOfPosts, setListOfPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // Add searchQuery state
   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
   let { id } = useParams();
@@ -20,19 +20,19 @@ function Home() {
       navigate("/login");
     } else {
       axios
-        .get("http://localhost:3001/posts", {
+        .get(`http://localhost:3001/posts/your-recipes/${authState.id}`, {
           headers: { accessToken: localStorage.getItem("accessToken") },
         })
         .then((response) => {
           setListOfPosts(response.data.listOfPosts);
-          setLikedPosts(
-            response.data.likedPosts.map((like) => {
-              return like.PostId;
-            })
-          );
+        //   setLikedPosts(
+        //     response.data.likedPosts.map((like) => {
+        //       return like.PostId;
+        //     })
+        //   );
         });
     }
-  }, [navigate]);
+  }, [authState.id, navigate]);
 
   const likeAPost = (postId) => {
     axios
@@ -79,6 +79,8 @@ function Home() {
     <div className="container">
       {localStorage.getItem("accessToken") && (
         <>
+          <h1 className="my-5">Your Recipes: {authState.username}</h1>
+          <h1>Your id: {authState.id} </h1>
           <input
             type="text"
             className="form-control input w-100 rounded my-2"
@@ -137,6 +139,7 @@ function Home() {
                       </Button>
                     </div>
                     <h1>UserID:{value.UserId}</h1>
+                    <h1>PostID:{value.id}</h1>
                   </div>
                 </div>
               </div>
@@ -148,4 +151,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default YourRecipes;

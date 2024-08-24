@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Posts, Likes,Categories,Steps } = require("../models");
+const { Posts, Likes,Categories,Steps, Users } = require("../models");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
  
@@ -27,21 +27,40 @@ router.get("/", validateToken, async (req, res) => {
 
  });
 
+router.get("/your-recipes/:id", validateToken, async (req, res) => {
+  const id = req.params.id;  
 
+  try {
+     const listOfPosts = await Posts.findAll({
+      include: [
+        {
+          model: Categories,
+          required: false,  
+        },
+        {
+          model: Steps,
+          required: false,  
+        },
+        {
+          model: Users,  
+          required: false,  
+        },
+        Likes, 
+      ],
+      logging: console.log,  
+      where: {
+        UserId: id,
+      },
+    });
 
-router.get("/byId/:id", async (req, res) => {
-  const id = req.params.id;
-  const post = await Posts.findByPk(id);
-  res.json(post);
-});
-
-router.get("/byuserId/:id", async (req, res) => {
-  const id = req.params.id;
-  const listOfPosts = await Posts.findAll({
-    where: { UserId: id },
-    include: [Likes],
-  });
-  res.json(listOfPosts);
+    // Return the filtered list of posts
+    res.json({ listOfPosts: listOfPosts });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the posts." });
+  }
 });
 
 router.post("/", validateToken, async (req, res) => {
