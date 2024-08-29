@@ -6,11 +6,16 @@ import { AuthContext } from "../helpers/AuthContext";
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-regular-svg-icons";
+import Dropdown from "react-bootstrap/Dropdown";
 
 function Home() {
   const [listOfPosts, setListOfPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [listOfCategories, setListOfCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [sortState, setSortState] = useState("none");
+
   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
   let { id } = useParams();
@@ -31,6 +36,10 @@ function Home() {
             })
           );
         });
+
+      axios.get("http://localhost:3001/categories").then((response) => {
+        setListOfCategories(response.data);
+      });
     }
   }, [navigate]);
 
@@ -70,10 +79,31 @@ function Home() {
       });
   };
 
-  // Filter posts based on the search query
-  const filteredPosts = listOfPosts.filter((post) =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter posts based on the search query and selected category
+  let filteredPosts = listOfPosts
+    .filter((post) =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((post) =>
+      selectedCategory === "All Categories"
+        ? true
+        : post.Category.category_name === selectedCategory
+    );
+
+   if (sortState === "ascending") {
+    filteredPosts = filteredPosts.sort((a, b) =>
+      a.title.localeCompare(b.title)
+    );
+  } else if (sortState === "descending") {
+    filteredPosts = filteredPosts.sort((a, b) =>
+      b.title.localeCompare(a.title)
+    );
+  }
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    console.log("Selected Category:", category); // Log the selected category
+  };
 
   return (
     <div className="container">
@@ -86,6 +116,37 @@ function Home() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)} // Update searchQuery state on input change
           />
+          <div className="d-flex gap-5">
+            <div>Sort by category:</div>
+            <Dropdown onSelect={handleCategoryChange}>
+              <Dropdown.Toggle variant="success" id="dropdown-basic">
+                {selectedCategory || "Select a Category"}
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item eventKey="All Categories">
+                  All Categories
+                </Dropdown.Item>
+                {listOfCategories.map((item, key) => (
+                  <Dropdown.Item key={key} eventKey={item.category_name}>
+                    {item.category_name}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+
+            <select
+              defaultValue={"DEFAULT"}
+              onChange={(e) => setSortState(e.target.value)}
+            >
+              <option value="DEFAULT" disabled>
+                None
+              </option>
+              <option value="ascending">Ascending</option>
+              <option value="descending">Descending</option>
+            </select>
+          </div>
+
           <div className="row">
             {filteredPosts.map((value, key) => (
               <div
