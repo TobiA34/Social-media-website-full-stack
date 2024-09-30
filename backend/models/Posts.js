@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     post: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     CategoryId: {
@@ -26,10 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     Posts.hasMany(models.Likes, {
       onDelete: "cascade",
     });
-
-    Posts.belongsTo(models.Categories, { foreignKey: "CategoryId" });
-    Posts.belongsTo(models.Users, { foreignKey: "UserId" });
-
+Posts.belongsTo(models.Categories, { foreignKey: "CategoryId" });
 
     Posts.hasMany(models.Steps, { foreignKey: "PostId" });
 Posts.belongsTo(models.Users, { foreignKey: "UserId" });

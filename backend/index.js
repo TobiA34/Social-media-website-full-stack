@@ -9,8 +9,10 @@ const db = require("./models");
 
 // Routers
 const postRouter = require("./routes/Posts");
-app.use("/posts", postRouter);
+app.use("/posts", postRouter); 
 
+// Routers
+ 
 const commentsRouter = require("./routes/Comments");
 app.use("/comments", commentsRouter);
 

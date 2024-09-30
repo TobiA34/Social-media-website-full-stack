@@ -15,6 +15,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import CreateSteps from "./pages/CreateSteps";
 import YourRecipes from "./pages/YourRecipes";
+
  function App() {
  
    const [authState, setAuthState] = useState({
@@ -74,6 +75,7 @@ import YourRecipes from "./pages/YourRecipes";
                       <Nav.Link as={Link} to="/" className="remove-style">
                         All Recipes
                       </Nav.Link>
+
                       <Nav.Link
                         as={Link}
                         to={`/your-recipes/${authState.id}`}
@@ -81,6 +83,7 @@ import YourRecipes from "./pages/YourRecipes";
                       >
                         Your Recipes
                       </Nav.Link>
+
                       <Nav.Link
                         as={Link}
                         to="/createpost"
@@ -117,7 +120,7 @@ import YourRecipes from "./pages/YourRecipes";
             <Route path="/" exact element={<Home />} />
             <Route path="/your-recipes/:id" exact element={<YourRecipes />} />
             <Route path="/post/:id" exact element={<Post />} />
-            <Route path="/steps/:id" exact element={<CreateSteps />} />
+            <Route path="/steps/:id" element={<CreateSteps />} />
             <Route path="/createpost" exact element={<CreatePost />} />
             <Route
               path="/createcategories"
