@@ -11,7 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
+.card {
+  max-height: 100%;
+}
 .remove-style {
   text-decoration: none;
   color: black;
@@ -45,4 +47,26 @@ code {
   .nav-btn {
     width: 8%;
     height: 10%;
+  }
+ 
+
+  .select {
+    width: 50%;
+  }
+
+  .pagination .btn {
+    background: blue;
+    color: white;
+  }
+  .pagination h1 {
+     font-size: 30px;
+  }
+
+    .page-item button{
+      font-size: 10px;
+    }
+
+  .page-item button:hover {
+    background: yellow;
+    color: black;
   }

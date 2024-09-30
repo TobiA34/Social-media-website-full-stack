@@ -7,12 +7,17 @@ const { sign } = require("jsonwebtoken");
 
 router.post("/", async (req, res) => {
   const { username, password } = req.body;
+  const user = await Users.findOne({ where: { username: username } });
   bcrypt.hash(password, 10).then((hash) => {
     Users.create({
       username: username,
       password: hash,
     });
-    res.json("SUCCESS");
+        const accessToken = sign(
+          { username: user.username, id: user.id },
+          "importantsecret"
+        );
+    res.json({ token: accessToken, username: username, id: user.id });
   });
 });
 

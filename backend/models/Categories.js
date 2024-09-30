@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const Categories = sequelize.define("Categories", {
     category_name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       distinct:true // add this distinct here
      },
     UserId: {
@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
  
 
      Categories.belongsTo(models.Users, { foreignKey: "UserId" });
+     
       Categories.belongsTo(models.Posts, { foreignKey: "CategoryId" });
 
   };
