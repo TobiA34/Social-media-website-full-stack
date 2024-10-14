@@ -1,56 +1,76 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import { AuthContext } from "../helpers/AuthContext";
-import Button from "react-bootstrap/Button";
+import PaginationComponent from "../Components/Pagination";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-regular-svg-icons";
-import Pagination from "../Components/Pagination";
+
+library.add(fas);
 
 function YourRecipes() {
-  const [listOfPosts, setListOfPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const { authState } = useContext(AuthContext);
-  const [currentPage, setCurrentPage] = useState(1); // Current page is 1-based
-  const [postsPerPage] = useState(8); // Display 8 posts per page
-  const [totalPosts, setTotalPosts] = useState(0); // Track the total number of posts, initialized to 0
   let navigate = useNavigate();
-  let { id } = useParams();
+  const [listOfRecipes, setListOfRecipes] = useState([]);
+  const [likedRecipes, setLikedRecipes] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [sortState, setSortState] = useState("none");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
+  const [totalRecipes, setTotalRecipes] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    if (!localStorage.getItem("accessToken")) {
-      navigate("/login");
-    } else {
-      const fetchData = async () => {
-        try {
-          const offset = (currentPage - 1) * postsPerPage; // Calculate offset based on current page
+    const fetchRecipes = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/recipe/v2/your-recipes/${authState.id}`,
+          {
+            params: { limit, page },
+            headers: {
+              accessToken: localStorage.getItem("accessToken"),
+            },
+          }
+        );
 
-          // Fetch posts with pagination info from the backend
-          const response = await axios.get(
-            `http://localhost:3001/posts?limit=${postsPerPage}&offset=${offset}&your-recipes/${authState.id}`,
-            {
-              headers: { accessToken: localStorage.getItem("accessToken") },
-            }
-          );
+        const {
+          listOfRecipes: listOfRecipes,
+          totalRecipes: totalRecipes,
+          likedRecipes: likedRecipes,
+          totalPages,
+        } = response.data;
 
-          // Ensure that the backend returns `totalPosts` in the response
-          setListOfPosts(response.data.listOfPosts);
-          setTotalPosts(response.data.totalPosts || 0); // Fallback to 0 if `totalPosts` is undefined
-          setLikedPosts(response.data.likedPosts.map((like) => like.PostId));
-        } catch (error) {
-          console.error("Error fetching posts:", error);
-        }
-      };
+        setListOfRecipes(listOfRecipes);
+        setTotalRecipes(totalRecipes);
+        setLikedRecipes(likedRecipes.map((like) => like.RecipeId));
+        setTotalPages(totalPages);
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      }
+    };
 
-      fetchData();
-    }
-  }, [authState.id, navigate, currentPage, postsPerPage]);
+    fetchRecipes();
+  }, [page, limit]);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handlePageChange = (pageNumber) => {
+    setPage(pageNumber);
+  };
 
-  const likeAPost = (postId) => {
+  const handleItemsPerPageChange = (event) => {
+    setLimit(Number(event.target.value));
+    setPage(1);
+  };
+
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value);
+    setPage(1);
+  };
+
+    const likeAPost = (postId) => {
     axios
       .post(
         "http://localhost:3001/likes",
@@ -58,8 +78,8 @@ function YourRecipes() {
         { headers: { accessToken: localStorage.getItem("accessToken") } }
       )
       .then((response) => {
-        setListOfPosts(
-          listOfPosts.map((post) => {
+        setListOfRecipes(
+          listOfRecipes.map((post) => {
             if (post.id === postId) {
               if (response.data.liked) {
                 return { ...post, Likes: [...post.Likes, 0] };
@@ -73,140 +93,170 @@ function YourRecipes() {
             }
           })
         );
-
-        if (likedPosts.includes(postId)) {
-          setLikedPosts(likedPosts.filter((id) => id !== postId));
-        } else {
-          setLikedPosts([...likedPosts, postId]);
-        }
       });
+    };
+
+  const loadMore = () => {
+    setLimit(limit + 5);
   };
 
-  // Filter posts based on the search query
-  const filteredPosts = listOfPosts.filter((post) =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Extract unique categories from the list of recipes
+  const uniqueCategories = [
+    ...new Set(
+      listOfRecipes
+        .map((recipe) => recipe.Category?.category_name)
+        .filter((category) => category) // Filter out any undefined/null values
+    ),
+  ];
 
-  // Calculate total pages based on totalPosts
-  const totalPages = totalPosts > 0 ? Math.ceil(totalPosts / postsPerPage) : 1; // Ensure totalPages is always at least 1
+  let filteredRecipes = (listOfRecipes || [])
+    .filter((recipe) =>
+      recipe.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((recipe) =>
+      selectedCategory === "All Categories"
+        ? true
+        : recipe.Category && recipe.Category.category_name === selectedCategory
+    );
 
-  // Function to handle the next button
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
+  // Apply sorting based on sortState
+  if (sortState === "ascending") {
+    filteredRecipes = filteredRecipes.sort((a, b) =>
+      a.title.localeCompare(b.title)
+    );
+  } else if (sortState === "descending") {
+    filteredRecipes = filteredRecipes.sort((a, b) =>
+      b.title.localeCompare(a.title)
+    );
+  }
 
-  // Function to handle the previous button
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
+  const startIndex = (page - 1) * limit;
+  const endIndex = Math.min(startIndex + limit, totalRecipes);
 
   return (
-    <div className="container">
+    <div className="container mt-4">
       {localStorage.getItem("accessToken") && (
         <>
-          <h1 className="my-5">Your Recipes: {authState.username}</h1>
-          <h1>Your id: {authState.id} </h1>
+        <h1>Your Recipes: {authState.username}</h1>
           <input
             type="text"
-            className="form-control input w-100 rounded my-2"
+            className="form-control mb-3"
             placeholder="Search for a recipe..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Update searchQuery state on input change
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <div className="row">
-            {filteredPosts.map((value, key) => (
-              <div
-                key={key}
-                className="col-lg-4 col-md-6 col-sm-12 mb-4 mt-4 d-flex"
-              >
-                <div className="card h-100">
-                  <div className="card-body">
-                    <div className="d-flex justify-content-between">
-                      <h5 className="card-title">{value.title}</h5>
-                      <div className="card-text btn btn-danger rounded-5 pill">
-                        <h1>{value.Category.category_name}</h1>
-                      </div>
-                    </div>
-                    <p className="card-text">{value.post}</p>
+          <div className="d-flex justify-content-between mb-3 gap-2">
+            <select
+              className="form-select"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+            >
+              <option value="All Categories">All Categories</option>
+              {uniqueCategories.map((category, key) => (
+                <option key={key} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
 
-                    <div className="d-flex justify-content-between">
-                      <Link
-                        to={`/profile/${value.UserId}`}
-                        className="btn btn-link"
-                      >
-                        {value.username}
-                      </Link>
-                      <div className="d-flex align-items-center">
-                        <ThumbUpAltIcon
-                          onClick={() => likeAPost(value.id)}
-                          className={
-                            likedPosts.includes(value.id)
-                              ? "unlikeBttn"
-                              : "likeBttn"
-                          }
-                        />
-                        <label className="ms-2">{value.Likes.length}</label>
-                        <FontAwesomeIcon icon={faStar} className="ms-3" />
-                      </div>
+            <select
+              className="form-select"
+              defaultValue="none"
+              onChange={(e) => setSortState(e.target.value)}
+            >
+              <option value="none" disabled>
+                Sort
+              </option>
+              <option value="ascending">Ascending</option>
+              <option value="descending">Descending</option>
+            </select>
+
+            <select
+              className="form-select"
+              value={limit}
+              onChange={handleItemsPerPageChange}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+
+          <div className="row">
+            {filteredRecipes.map((value, key) => (
+              <div key={key} className="col-12 col-md-6 col-lg-4 mb-4">
+                <div className="card">
+                  <div className="card-header d-flex justify-content-between">
+                    <h5 className="card-title">{value.title}</h5>
+                    <span className="d-flex badge bg-danger rounded-4 align-items-center">
+                      {value.Category.category_name}
+                    </span>
+                  </div>
+                  <div className="card-body d-flex justify-content-between">
+                    <p className="card-text">{value.recipe}</p>
+                    <FontAwesomeIcon
+                      icon="pencil-alt"
+                      onClick={() => navigate(`/edit/${value.id}`)}
+                    />
+                  </div>
+                  <div className="card-footer d-flex justify-content-between align-items-center">
+                    <Link
+                      to={`/profile/${value.UserId}`}
+                      className="link-primary"
+                    >
+                      {value.username}
+                    </Link>
+                    <div className="d-flex align-items-center gap-2">
+                      <ThumbUpAltIcon
+                        onClick={() => likeAPost(value.id)}
+                        className={`like-icon ${
+                          likedRecipes.includes(value.id) ? "liked" : ""
+                        }`}
+                      />
+                      <span>{value.Likes.length}</span>
                     </div>
-                    <div className="mt-3 d-flex gap-5 justify-content-between align-items-center">
-                      <Button
-                        variant="dark"
-                        onClick={() => navigate(`/post/${value.id}`)}
-                      >
-                        View Recipe
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={() => navigate(`/steps/${value.id}`)}
-                      >
-                        Add Steps
-                      </Button>
-                    </div>
-                    <h1>UserID:{value.UserId}</h1>
-                    <h1>PostID:{value.id}</h1>
+                  </div>
+                  <div className="card-footer text-center d-flex gap-2 align-items-center justify-content-center">
+                    <button
+                      onClick={() => navigate(`/recipe/${value.id}`)}
+                      className="btn btn-info w-25"
+                    >
+                      View Recipe
+                    </button>
+                    <button
+                      onClick={() => navigate(`/steps/${value.id}`)}
+                      className="btn btn-success w-25"
+                    >
+                      Add Steps
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
+          <PaginationComponent
+            totalPages={totalPages}
+            currentPage={page}
+            onPageChange={handlePageChange}
+          />
+
+          <button onClick={loadMore} className="btn btn-secondary mt-4">
+            Load More
+          </button>
         </>
       )}
-      <div className="d-flex align-items-center ps-2">
-        {/* Previous button */}
-        <button
-          className="btn btn-primary"
-          onClick={prevPage}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </button>
-
-        <Pagination
-          postsPerPage={postsPerPage}
-          totalPosts={listOfPosts.length} // Pass total posts from backend
-          paginate={paginate}
-        />
-
-        {/* Next button */}
-        <button
-          className="btn btn-primary"
-          onClick={nextPage}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </button>
-      </div>
-      {/* Display the current page */}
-      <p>
-        Page {currentPage} of {totalPages}
-      </p>
+      {!localStorage.getItem("accessToken") && (
+      <h1 className="mt-2">
+        Showing recipes {endIndex} of {totalRecipes}
+      </h1>
+      )}
     </div>
   );
 }
 
 export default YourRecipes;
+
+
+

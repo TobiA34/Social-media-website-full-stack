@@ -1,0 +1,152 @@
+ // Mixin for margin and padding classes
+@mixin generate-margin-padding($property, $short, $unit: px, $start: 1, $end: 100) {
+  @for $i from $start through $end {
+    .#{$short}-#{$i} {
+      #{$property}: #{$i}#{$unit} !important;
+    }
+  }
+}
+
+// Generate margin classes (top, right, bottom, left)
+@include generate-margin-padding(margin-left, ml);
+@include generate-margin-padding(margin-right, mr);
+@include generate-margin-padding(margin-top, mt);
+@include generate-margin-padding(margin-bottom, mb);
+
+// Generate padding classes (top, right, bottom, left)
+@include generate-margin-padding(padding-left, pl);
+@include generate-margin-padding(padding-right, pr);
+@include generate-margin-padding(padding-top, pt);
+@include generate-margin-padding(padding-bottom, pb);
+ 
+ 
+ body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.expand {
+  height: 200px;
+}
+
+ .card {
+  max-height: 100%;
+}
+
+.card-width{
+  width: 500px;
+  border: 1px solid black;
+  border-radius: 10px;
+}
+.remove-style {
+  text-decoration: none;
+  color: black;
+}
+
+.remove  {
+  list-style: none;
+  text-decoration: none;
+  
+}
+
+.pill {
+  height: 35px;
+  font-size: 8px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+  
+ .pill h1 {
+  margin-top: -4px;
+  font-size: 18px;
+ }
+
+ .icon {
+    width: 80%;
+    height: 25%;
+  }
+
+  .nav-btn {
+    width: 8%;
+    height: 10%;
+  }
+ 
+
+  .select {
+    width: 50%;
+  }
+
+  .pagination .btn {
+    background: blue;
+    color: white;
+  }
+  .pagination h1 {
+     font-size: 30px;
+  }
+
+    .page-item button{
+      font-size: 10px;
+    }
+
+  .page-item button:hover {
+    background: yellow;
+    color: black;
+  }
+
+
+  .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+  }
+
+.image-container {
+    width: 180px;
+    height: 120px; /* Full viewport height */
+    overflow: hidden;
+ }
+       .image-container img {
+           width: 100%;
+           height: 100%;
+           object-fit: fill;
+       }
+
+
+.textarea-container {
+  position: relative;
+}
+
+.add-comment-button {
+  position: absolute;
+  right: 10px; /* Adjust as necessary */
+  bottom: 10px; /* Adjust as necessary */
+  padding: 5px 10px; /* Optional: To give the button some padding */
+}
+
+.comment-img {
+ width: 70px;
+ height: 70px;
+ border-radius: 50%;
+}
+
+.delete-icon {
+  color: red;
+  width: 20px;
+  height: 20px;
+}
+ 
+.dot-icon {
+  color: orange;
+  font-size: 10px;
+}

@@ -3,44 +3,58 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
  
-function CreateSteps() {
-  const { id } = useParams(); // Use useParams to get the ID from the route
+function CreateSteps({ closeModal = () => {}, setRefresh, refresh }) {
+  const { id } = useParams(); 
   const [steps, setSteps] = useState([]);
   const [newSteps, setNewSteps] = useState("");
+  const [error, setError] = useState("");
 
   const { authState } = useContext(AuthContext);
   const [postObject, setPostObject] = useState({});
   let navigate = useNavigate();
 
   useEffect(() => {
- 
-    axios.get(`http://localhost:3001/posts/byId/${id}`).then((response) => {
+    axios.get(`http://localhost:3001/recipe/byId/${id}`).then((response) => {
       setPostObject(response.data);
     });
-
-  
   }, []);
 
   const addStep = () => {
-    
-  axios.post(`http://localhost:3001/steps/${id}`, {
-  step_name: newSteps,
-}, {
-  headers: { accessToken: localStorage.getItem("accessToken") }
-})
-.then(response => {
-  console.log('Step created:', response.data);
-})
+    if (!newSteps.trim()) {
+      setError("Step cannot be empty.");
+      return;
+    }
+
+    setError("");  
+
+    axios
+      .post(
+        `http://localhost:3001/steps/${id}`,
+        {
+          step_name: newSteps,
+        },
+        {
+          headers: { accessToken: localStorage.getItem("accessToken") },
+        }
+      )
+      .then((response) => {
+        console.log("Step created:", response.data);
+      })
       .then((response) => {
         console.log("Steps added!");
 
         const stepsToAdd = { step_name: newSteps };
         setSteps([...steps, stepsToAdd]);
         console.log("Captured ID:", id);
-        const url = `/post/${id}`;
-        navigate(url) // Debugging line
-        console.log(url)
-      });
+        const url = `/recipe/${id}`;
+        navigate(url); // Debugging line
+        console.log(url);
+        // Refresh the parent component to fetch new steps
+        setRefresh(!refresh);
+        closeModal();
+        // Clear the input and close the modal
+        setNewSteps("");
+       });
   };
 
   return (
@@ -58,8 +72,12 @@ function CreateSteps() {
             setNewSteps(event.target.value);
           }}
         />
-        <button className="btn btn-primary" onClick={addStep}> Add Steps</button>
-       </div>
+        {error && <div className="text-danger">{error}</div>}
+        <button className="btn btn-primary" onClick={addStep}>
+          {" "}
+          Add Steps
+        </button>
+      </div>
     </div>
   );
 }

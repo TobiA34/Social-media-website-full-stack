@@ -5,55 +5,80 @@ import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import { AuthContext } from "../helpers/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import PaginationComponent from "../Components/Pagination";
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import CreateRecipe from "./CreateRecipe";
+library.add(fas);
 
 function Home() {
   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
-  const [listOfPosts, setListOfPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState([]);
+  const [listOfRecipes, setListOfRecipes] = useState([]);
+  const [likedRecipes, setLikedRecipes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [sortState, setSortState] = useState("none");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
-  const [totalPosts, setTotalPosts] = useState(0);
+  const [totalRecipes, setTotalRecipes] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [modalShow, setModalShow] = useState(false);
 
-useEffect(() => {
-  const fetchPosts = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3001/posts/v2?limit=${limit}&page=${page}`,  
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
+  
+ 
+
+  useEffect(() => {
+    let isMounted = true; // Track if the component is mounted
+
+    const fetchRecipes = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/recipe/v2?limit=${limit}&page=${page}`,
+          {
+            headers: {
+              accessToken: localStorage.getItem("accessToken"),
+            },
+          }
+        );
+
+        if (isMounted) { // Only update state if the component is still mounted
+          const {
+            listOfRecipes,
+            totalRecipes,
+            likedRecipes,
+            totalPages,
+          } = response.data;
+
+          setListOfRecipes(listOfRecipes || []);
+          setTotalRecipes(totalRecipes || 0);
+          setLikedRecipes(likedRecipes.map((like) => like.RecipeId) || []);
+          setTotalPages(totalPages || 0);
         }
-      );
+      } catch (error) {
+        console.error("Error fetching recipes:", error.response || error.message);
+        if (error.response) {
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+          console.error("Response headers:", error.response.headers);
+        }
+      }
+      
+    };
 
-      const {
-        listOfPosts,
-        totalPosts,
-        likedPosts,
-        totalPages,
-      } = response.data;
+    fetchRecipes();
 
-      setListOfPosts(listOfPosts);
-      setTotalPosts(totalPosts);
-      setLikedPosts(likedPosts.map((like) => like.PostId));
-      setTotalPages(totalPages);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-    }
-  };
-
-  fetchPosts();
-}, [page, limit]);
+    return () => {
+      isMounted = false; // Cleanup function to set isMounted to false
+    };
+  }, [page, limit]);
 
   const handlePageChange = (pageNumber) => {
     setPage(pageNumber);
   };
-
 
   const handleItemsPerPageChange = (event) => {
     setLimit(Number(event.target.value));
@@ -69,34 +94,101 @@ useEffect(() => {
     setLimit(limit + 5);
   };
 
-  
-  let filteredPosts = listOfPosts
-    .filter((post) =>
-      post.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((post) =>
-      selectedCategory === "All Categories"
-        ? true
-        : post.Category && post.Category.category_name === selectedCategory
-    );
+  // Extract unique categories from the list of recipes
+  const uniqueCategories = [
+    ...new Set(
+      listOfRecipes
+        .map((recipe) => recipe.Category?.category_name)
+        .filter((category) => category) // Filter out any undefined/null values
+    ),
+  ];
 
-   if (sortState === "ascending") {
-    filteredPosts = filteredPosts.sort((a, b) =>
-      a.title.localeCompare(b.title)
-    );
-  } else if (sortState === "descending") {
-    filteredPosts = filteredPosts.sort((a, b) =>
-      b.title.localeCompare(a.title)
-    );
-  }
+let filteredRecipes = (listOfRecipes || [])
+  .filter((recipe) =>
+    recipe.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  .filter((recipe) =>
+    selectedCategory === "All Categories"
+      ? true
+      : recipe.Category && recipe.Category.category_name === selectedCategory
+  );
 
-  const startIndex = (page - 1) * limit;  
-  const endIndex = Math.min(startIndex + limit, totalPosts);  
-  
+// Apply sorting based on sortState
+if (sortState === "ascending") {
+  filteredRecipes = filteredRecipes.sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
+} else if (sortState === "descending") {
+  filteredRecipes = filteredRecipes.sort((a, b) =>
+    b.title.localeCompare(a.title)
+  );
+}
+
+
+    const likeAPost = (postId) => {
+      axios
+        .post(
+          "http://localhost:3001/likes",
+          { PostId: postId },
+          { headers: { accessToken: localStorage.getItem("accessToken") } }
+        )
+        .then((response) => {
+          setListOfRecipes(
+            listOfRecipes.map((post) => {
+              if (post.id === postId) {
+                if (response.data.liked) {
+                  return { ...post, Likes: [...post.Likes, 0] };
+                } else {
+                  const likesArray = post.Likes;
+                  likesArray.pop();
+                  return { ...post, Likes: likesArray };
+                }
+              } else {
+                return post;
+              }
+            })
+          );
+        });
+    };
+
+    function MyVerticallyCenteredModal(props) {
+      return (
+        <Modal
+          {...props}
+          size="lg"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+        >
+          <Modal.Header closeButton></Modal.Header>
+          <Modal.Body>
+            <CreateRecipe onHide={props.onHide} />
+          </Modal.Body>
+        </Modal>
+      );
+    }
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = Math.min(startIndex + limit, totalRecipes);
+
   return (
     <div className="container mt-4">
       {localStorage.getItem("accessToken") && (
         <>
+          <div className="d-flex justify-content-between align-items-center ">
+            <div>
+              <h1 className="my-4">All Recipes</h1>
+            </div>
+            <div>
+              <Button variant="primary" onClick={() => setModalShow(true)}>
+                <FontAwesomeIcon icon={faPlus} />
+              </Button>
+              <MyVerticallyCenteredModal
+                show={modalShow}
+                onHide={() => setModalShow(false)}
+              />
+            </div>
+          </div>
+
           <input
             type="text"
             className="form-control mb-3"
@@ -104,16 +196,16 @@ useEffect(() => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <div className="d-flex justify-content-between mb-3">
+          <div className="d-flex justify-content-between mb-3 gap-2">
             <select
               className="form-select"
               value={selectedCategory}
               onChange={handleCategoryChange}
             >
               <option value="All Categories">All Categories</option>
-              {filteredPosts.map((item, key) => (
-                <option key={key} value={item.category_name}>
-                  {item.category_name}
+              {uniqueCategories.map((category, key) => (
+                <option key={key} value={category}>
+                  {category}
                 </option>
               ))}
             </select>
@@ -141,19 +233,23 @@ useEffect(() => {
               <option value={20}>20</option>
             </select>
           </div>
-
-          <div className="row">
-            {filteredPosts.map((value, key) => (
-              <div key={key} className="col-12 col-md-6 col-lg-4 mb-4">
-                <div className="card">
+          {/* List of Recipes */}
+          <div className="row my-4">
+            {filteredRecipes.map((value, key) => (
+              <div key={key} className="col-12 col-md-6 col-lg-4 mb-4 my-3">
+                <div className="card h-100 ">
                   <div className="card-header d-flex justify-content-between">
                     <h5 className="card-title">{value.title}</h5>
                     <span className="d-flex badge bg-danger rounded-4 align-items-center">
                       {value.Category.category_name}
                     </span>
                   </div>
-                  <div className="card-body">
-                    <p className="card-text">{value.post}</p>
+                  <div className="card-body d-flex justify-content-between">
+                    <p className="card-text">{value.recipe}</p>
+                    <FontAwesomeIcon
+                      icon="pencil-alt"
+                      onClick={() => navigate(`/edit/${value.id}`)}
+                    />
                   </div>
                   <div className="card-footer d-flex justify-content-between align-items-center">
                     <Link
@@ -166,24 +262,21 @@ useEffect(() => {
                       <ThumbUpAltIcon
                         onClick={() => likeAPost(value.id)}
                         className={`like-icon ${
-                          likedPosts.includes(value.id) ? "liked" : ""
+                          likedRecipes.includes(value.id) ? "liked" : ""
                         }`}
                       />
                       <span>{value.Likes.length}</span>
                     </div>
                   </div>
-                  <div className="card-footer text-center">
+                  <div
+                    className="card-footer text-center d-flex 
+                  gap-3"
+                  >
                     <button
-                      onClick={() => navigate(`/post/${value.id}`)}
-                      className="btn btn-info w-50"
+                      onClick={() => navigate(`/recipe/${value.id}`)}
+                      className="btn btn-info w-100"
                     >
                       View Recipe
-                    </button>
-                    <button
-                      onClick={() => navigate(`/steps/${value.id}`)}
-                      className="btn btn-success w-50"
-                    >
-                      Add Steps
                     </button>
                   </div>
                 </div>
@@ -195,7 +288,7 @@ useEffect(() => {
             totalPages={totalPages}
             currentPage={page}
             onPageChange={handlePageChange}
-           />
+          />
 
           <button onClick={loadMore} className="btn btn-secondary mt-4">
             Load More
@@ -203,7 +296,7 @@ useEffect(() => {
         </>
       )}
       <h1 className="mt-2">
-        Showing posts {endIndex} of {totalPosts}
+        Showing recipes {endIndex} of {totalRecipes}
       </h1>
     </div>
   );
