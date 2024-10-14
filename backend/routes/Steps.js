@@ -3,16 +3,15 @@
  const { Steps } = require("../models");
  const { validateToken } = require("../middlewares/Authmiddlewares");
 
-router.get("/:postId", async (req, res) => {
-  const { postId, userId } = req.params;
+router.get("/:recipeId", async (req, res) => {
+  const { recipeId, userId } = req.params;
 
   try {
-    // Find all steps associated with the given postId
+   
     const steps = await Steps.findAll({
-      where: { PostId: postId  }, // Assuming PostId is the foreign key in Steps
+      where: { RecipeId: recipeId },  
     });
 
-    // Send the steps as the response
     res.json(steps);
   } catch (error) {
     console.error(error);
@@ -23,23 +22,22 @@ router.get("/:postId", async (req, res) => {
 });
 
 
-router.get("/:postId", async (req, res) => {
-const postId = req.params.postId;
-const step = await Steps.findAll({ where: { PostId: postId } });
-res.json(step);
+router.get("/:recipeId", async (req, res) => {
+  const recipeId = req.params.recipeId;
+  const step = await Steps.findAll({ where: { PostId: recipeId } });
+  res.json(step);
 });
 
 
-router.post("/:postId", async (req, res) => {
-  const { postId } = req.params; // Extract the postId from the route parameter
-  const step = req.body; // Get the step data from the request body
-
-  // Make sure the step includes the postId to establish the relationship
-  step.PostId = postId;
+router.post("/:recipeId", async (req, res) => {
+  const { recipeId } = req.params;  
+  const step = req.body;  
+  
+  step.RecipeId = recipeId;
 
   try {
-    const newStep = await Steps.create(step); // Save the step to the database
-    res.json(newStep); // Send back the created step as a response
+    const newStep = await Steps.create(step);  
+    res.json(newStep);
   } catch (error) {
     res
       .status(500)
@@ -59,9 +57,22 @@ router.delete("/:stepsId", validateToken, async (req, res) => {
   res.json("DELETED SUCCESSFULLY");
 });
 
-// UPDATE STEPS set step_name = "cut onion" where id = StepId
-// Update step by ID
-// Route to update a step
+ router.get("/steps/:id", async (req, res) => {
+   try {
+     const stepId = req.params.id;
+     const steps = await Steps.findAll({ where: { recipeId: stepId } });
+
+     if (steps) {
+       res.json(steps);
+     } else {
+       res.status(404).json({ error: "Steps not found" });
+     }
+   } catch (error) {
+     console.error("Error fetching steps:", error);
+     res.status(500).json({ error: "An error occurred while fetching steps" });
+   }
+ });
+ 
 router.put("/update/:id", async (req, res) => {
   const stepId = req.params.id;
   const { step_name } = req.body;

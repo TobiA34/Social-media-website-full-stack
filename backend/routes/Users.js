@@ -6,19 +6,41 @@ const { validateToken } = require("../middlewares/Authmiddlewares");
 const { sign } = require("jsonwebtoken");
 
 router.post("/", async (req, res) => {
-  const { username, password } = req.body;
-  const user = await Users.findOne({ where: { username: username } });
-  bcrypt.hash(password, 10).then((hash) => {
-    Users.create({
+  const { name,username, password } = req.body;
+
+  // Check if the user already exists
+  const existingUser = await Users.findOne({ where: { username: username } });
+  if (existingUser) {
+    return res.status(400).json({ message: "Username already exists." });
+  }
+
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    // Create a new user
+    const newUser = await Users.create({
+      name: name,
       username: username,
-      password: hash,
+      password: hashedPassword,
     });
-        const accessToken = sign(
-          { username: user.username, id: user.id },
-          "importantsecret"
-        );
-    res.json({ token: accessToken, username: username, id: user.id });
-  });
+
+    // Create an access token for the newly created user
+    const accessToken = sign(
+      { name: newUser.name, username: newUser.username, id: newUser.id },
+      "importantsecret"
+    );
+
+    // Respond with the token and user info
+    res.json({
+      token: accessToken,
+      username: newUser.username,
+      id: newUser.id,
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Error creating user." });
+  }
 });
 
 router.post("/login", async (req, res) => {

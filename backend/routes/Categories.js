@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Categories, Posts } = require("../models");
+const { Categories, Recipes } = require("../models");
  const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
 
@@ -28,4 +28,4 @@ router.post("/", validateToken, async (req, res) => {
 
 module.exports = router;
 
-//select categoryName from Categories where UserId = id
+ 
