@@ -11,7 +11,8 @@ import ListGroup from "react-bootstrap/ListGroup";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import CreateSteps from "./CreateSteps";
- 
+import CreateIngridents from "./CreateIngridents";
+
 function Recipe() {
   let { id } = useParams();
   const [recipeObject, setRecipeObject] = useState({});
@@ -20,14 +21,15 @@ function Recipe() {
   const [steps, setSteps] = useState([]);
   const [newSteps, setNewSteps] = useState("");
   const [lgShow, setLgShow] = useState(false);
+  const [ingridentShow, setIngridentShow] = useState(false);
+ 
   const [editShow, setEditShow] = useState(false);
   const [refresh, setRefresh] = useState(false); // State to trigger refresh
-  
 
   const [newComment, setNewComment] = useState("");
   const { authState } = useContext(AuthContext);
 
-  const [ingridents, setIngridents] = useState(["test1","test2","test3","test4","test5","test6","test7","test8","test9","test10"])
+  const [ingridents, setIngridents] = useState([])
 
   let navigate = useNavigate();
 
@@ -35,6 +37,7 @@ function Recipe() {
     fetchRecipeData();
     fetchComments();
     fetchSteps();
+    fetchIngredients();
   }, [id, refresh]); // Add refresh to the dependency array
 
   const fetchRecipeData = () => {
@@ -58,6 +61,12 @@ function Recipe() {
   const fetchSteps = () => {
     axios.get(`http://localhost:3001/steps/${id}`).then((response) => {
       setSteps(response.data);
+    });
+  };
+
+  const fetchIngredients = () => {
+    axios.get(`http://localhost:3001/ingredients/${id}`).then((response) => {
+      setIngridents(response.data);
     });
   };
 
@@ -152,6 +161,23 @@ function Recipe() {
   const isoString = "2024-10-03T15:07:11.000Z";
   console.log(formatTime(isoString)); //
 
+  const deleteIngridents = (id) => {
+    axios
+      .delete(`http://localhost:3001/ingredients/${id}`, {
+        headers: { accessToken: localStorage.getItem("accessToken") },
+      })
+      .then(() => {
+        setIngridents(
+          ingridents.filter((val) => {
+            return val.id !== id; // Use strict inequality
+          })
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting ingredient:", error.response ? error.response.data : error.message);
+      });
+  };
+
   const handleAddSteps = () => {
     axios
       .post(
@@ -181,6 +207,11 @@ function Recipe() {
     setLgShow(false);
     setRefresh(!refresh); // Toggle refresh to re-fetch data
   };
+
+    const closeIngridentModal = () => {
+      setIngridentShow(false);
+      setRefresh(!refresh); // Toggle refresh to re-fetch data
+    };
  
   return (
     <div className="container-fluid bg-light">
@@ -205,7 +236,7 @@ function Recipe() {
 
               <div className="row">
                 <div className="col-md-6 col-lg-4 col-12 mt-16">
-                   <h2>
+                  <h2>
                     <strong>{ingridents.length}</strong>
                   </h2>
                   <p>Ingridents</p>
@@ -242,13 +273,36 @@ function Recipe() {
           <div className="card-body">
             <div className="d-flex">
               <h2 className="">Ingridents</h2>
+
+              <Button
+                className="btn btn-primary ms-5 nav-btn"
+                onClick={() => setIngridentShow(true)}
+              >
+                +
+              </Button>
             </div>
 
             <hr />
-            <ListGroup as="ol" numbered>
+            <ListGroup as="ol">
               {ingridents.map((item, key) => (
                 <ListGroup.Item key={key} as="li">
-                  {item}
+                  <div className="d-flex justify-content-between">
+                    <div className="d-flex align-items-center gap-2">
+                      <FontAwesomeIcon
+                        icon={faTrashCan}
+                        className="delete-icon text-danger cursor-pointer"
+                        onClick={() => deleteIngridents(item.id)} // Correctly call deleteIngridents with item.id
+                        style={{ fontSize: "1.2rem" }}
+                      />
+                      <h1>{item.name}</h1>
+                    </div>
+                    <div>
+                      <h1>
+                        {item.quantity}
+                        {item.unit}
+                      </h1>
+                    </div>
+                  </div>
                 </ListGroup.Item>
               ))}
             </ListGroup>
@@ -339,6 +393,17 @@ function Recipe() {
               setRefresh={setRefresh} // Pass setRefresh as a prop
             />
           </Modal.Body>
+        </Modal>
+        <Modal
+          size="lg"
+          show={ingridentShow}
+          onHide={closeIngridentModal}
+          aria-labelledby="example-modal-sizes-title-lg"
+        >
+          <CreateIngridents
+            setRefresh={setRefresh}
+            closeIngridentModal={closeIngridentModal}
+          />
         </Modal>
       </div>
 
