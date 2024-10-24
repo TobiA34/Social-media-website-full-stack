@@ -1,10 +1,11 @@
 const express = require("express");
-const cors = require("cors");
-const { sequelize } = require("./models"); // Ensure this path is correct
 const app = express();
+const cors = require("cors");
 
+app.use(express.json());
 app.use(cors());
-app.use(express.json()); // Ensure this is included to parse JSON request bodies
+
+const db = require("./models");
 
 // Routers
 const recipeRouter = require("./routes/Recipes");
@@ -29,16 +30,9 @@ app.use("/likes", likesRouter);
 const stepsRouter = require("./routes/Steps");
 app.use("/steps",stepsRouter);
 
-const ingredientsRouter = require("./routes/Ingredients");
-app.use("/ingredients", ingredientsRouter);
 
-// Sync database and start server
-sequelize.sync()
-  .then(() => {
-    app.listen(3001, () => {
-      console.log("Server is running on port 3001");
-    });
-  })
-  .catch((error) => {
-    console.error("Unable to connect to the database:", error);
+db.sequelize.sync().then(() => {
+  app.listen(3001, () => {
+    console.log("Server running on port 3001");
   });
+});

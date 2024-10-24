@@ -2,8 +2,8 @@ import React, { useState, useContext, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
-import { AuthContext } from "../helpers/AuthContext"; // Import AuthContext
+import { useParams, useNavigate } from "react-router-dom";  
+import { AuthContext } from "../helpers/AuthContext";  
 
 
 function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh }) {
@@ -12,32 +12,31 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
     unit: "",
     quantity: "",
   });
-  const [message, setMessage] = useState(""); // For displaying success or error messages
-  const [show, setShow] = useState(false); // State to control modal visibility
-  let { id } = useParams(); // Get the recipe ID from the URL parameters
-  const { authState } = useContext(AuthContext); // Access authState from context
-  const navigate = useNavigate(); // Define navigate using useNavigate
-  const [ingredients, setIngredients] = useState([]); // State to hold fetched ingredients
+  const [message, setMessage] = useState("");  
+  const [show, setShow] = useState(false);  
+  let { id } = useParams();  
+  const { authState } = useContext(AuthContext);  
+  const navigate = useNavigate();  
+  const [ingredients, setIngredients] = useState([]);  
 
-  // Fetch all ingredients when the component mounts
-  useEffect(() => {
+   useEffect(() => {
     const fetchIngredients = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/ingredients/${id}/ingredients`); // Fetch ingredients by recipeId
-        setIngredients(response.data); // Set the fetched ingredients to state
+        const response = await axios.get(`http://localhost:3001/ingredients/${id}/ingredients`);  
+        setIngredients(response.data); 
       } catch (error) {
         console.error("Error fetching ingredients:", error);
       }
     };
 
-    fetchIngredients(); // Call the fetch function
-  }, [id]); // Dependency array includes id to refetch if it changes
+    fetchIngredients(); 
+  }, [id]);
 
   const handleClose = () => {
     setShow(false);
-    setNewIngrident({ name: "", unit: "", quantity: "" }); // Reset form when closing
-    setMessage(""); // Clear message when closing
-    closeIngridentModal(); // Call hideModal prop to hide the modal
+    setNewIngrident({ name: "", unit: "", quantity: "" }); 
+    setMessage(""); 
+    closeIngridentModal(); 
     setRefresh(!refresh);
 
   };
@@ -51,10 +50,8 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
       return;
     }
 
-    // Use authState.id as userId
-    const userId = authState.id; // Get userId from authState
 
-    // Send POST request to create a new ingredient
+    const userId = authState.id; 
     axios
       .post(
         `http://localhost:3001/ingredients/${id}`,
@@ -62,7 +59,7 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
           name: newIngrident.name,
           unit: newIngrident.unit,
           quantity: newIngrident.quantity,
-          userId: userId, // Include userId in the request body
+          userId: userId, 
         },
         {
           headers: {
@@ -72,13 +69,13 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
       )
       .then((response) => {
         if (response.data.error) {
-          setMessage(response.data.error); // Display error message from the server
+          setMessage(response.data.error);
         } else {
-          console.log("New Ingredient Object:", response.data); // Print the result as an object
-          setMessage("Ingredient added successfully!"); // Success message
-          handleClose(); // Close the modal after successful addition
-          refreshIngredients(); // Call refreshIngredients to refresh the ingredient list
-          navigate(`/recipe`); // Navigate to a specific route if needed
+          console.log("New Ingredient Object:", response.data); 
+          setMessage("Ingredient added successfully!"); 
+          handleClose(); 
+          refreshIngredients(); 
+          navigate(`/recipe`); 
         }
       })
       .catch((error) => {
@@ -88,12 +85,12 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
             `Error: ${error.response.data.error || "An error occurred."}`
           );
         } else {
-          setMessage("An error occurred while adding the ingredient."); // General error message
+          setMessage("An error occurred while adding the ingredient."); 
         }
       });
   };
 
-  // Define the units
+ 
   const units = [
     "kg",
     "g",
@@ -130,7 +127,7 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
             setNewIngrident({ ...newIngrident, unit: e.target.value })
           }
         >
-          <option value="">Select Unit</option> {/* Default option */}
+          <option value="">Select Unit</option> 
           {units.map((unit, index) => (
             <option key={index} value={unit}>
               {unit}
@@ -150,16 +147,13 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
         />
       </div>
       <button onClick={addIngrident}>save</button>
-      {/* Render the fetched ingredients */}
       <ul>
         {ingredients.map((ingredient) => (
           <li key={ingredient.id}>
-            {/* Render the trash can icon next to the ingredient name */}
             <FontAwesomeIcon 
               icon={faTrashCan} 
-              className="text-danger me-2" // Add classes for styling (optional)
+              className="text-danger me-2"
               onClick={() => {
-                // Handle delete action here
                 console.log(`Delete ingredient with id: ${ingredient.id}`);
               }}
             />

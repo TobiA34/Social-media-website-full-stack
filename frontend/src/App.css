@@ -89,3 +89,20 @@ button {
 .loginContainer input {
   border: 2px solid dodgerblue;
 }
+
+/* input[type="file"] {
+  display: none;
+} */
+
+.custom-file-upload {
+  border: 1px solid cornflowerblue;
+  display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 16px;
+  width: 60%;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  
+}

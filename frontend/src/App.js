@@ -24,6 +24,7 @@ import YourRecipes from "./pages/YourRecipes";
 import EditRecipe from "./pages/EditRecipe";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import UpdateImage from "./pages/UpdateImage";
 
 function App() {
   const [authState, setAuthState] = useState({
@@ -118,7 +119,7 @@ function App() {
                       >
                         Your Recipes
                       </Nav.Link>
- 
+
                       <Nav.Link
                         as={Link}
                         to="/createcategories"
@@ -135,7 +136,7 @@ function App() {
                   {authState.status && (
                     <div className="loggedInContainer d-flex align-items-center gap-3">
                       <h5 onClick={handleShow}>
-                        <Link>{authState.username}</Link>
+                        <Link to={`/profile/${authState.id}`}>{authState.username}</Link>
                       </h5>
                       <button
                         onClick={logout}
@@ -147,14 +148,14 @@ function App() {
                   )}
 
                   {/* Profile Modal */}
-                  <Modal show={show} onHide={handleClose} className="w-100">
+                  {/* <Modal show={show} onHide={handleClose} className="w-100">
                     <Modal.Header closeButton>
                       <Modal.Title>Profile</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                       <Profile />
                     </Modal.Body>
-                  </Modal>
+                  </Modal> */}
                 </div>
               </Navbar.Collapse>
             </Navbar>
@@ -171,11 +172,13 @@ function App() {
               exact
               element={<CreateCategories />}
             />
+            <Route path="/update-img/:id" exact element={<UpdateImage />} />
+
             <Route path="/edit/:id" exact element={<EditRecipe />} />
             <Route path="/home/:id" exact element={<Home />} />
             <Route path="/login" exact element={<Login />} />
             <Route path="/registration" exact element={<Registration />} />
-            {/* <Route path="/profile/:id" exact element={<Profile />} /> */}
+            <Route path="/profile/:id" exact element={<Profile />} />
             <Route path="*" exact element={<PageNotFound />} />
           </Routes>
         </Router>

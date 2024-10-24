@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
 import Card from "react-bootstrap/Card";
-import { faXmark, faPencil, faTrashCan,faDotCircle } from "@fortawesome/free-solid-svg-icons"; // For the 'x' icon
+import { faXmark, faPencil, faTrashCan,faDotCircle } from "@fortawesome/free-solid-svg-icons";
 import ReactStars from "react-stars";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -24,7 +24,7 @@ function Recipe() {
   const [ingridentShow, setIngridentShow] = useState(false);
  
   const [editShow, setEditShow] = useState(false);
-  const [refresh, setRefresh] = useState(false); // State to trigger refresh
+  const [refresh, setRefresh] = useState(false); 
 
   const [newComment, setNewComment] = useState("");
   const { authState } = useContext(AuthContext);
@@ -38,9 +38,10 @@ function Recipe() {
     fetchComments();
     fetchSteps();
     fetchIngredients();
-  }, [id, refresh]); // Add refresh to the dependency array
+  }, [id, refresh]); 
 
   const fetchRecipeData = () => {
+    console.log("Fetching recipe with ID:", id);  
     axios
       .get(`http://localhost:3001/recipe/byId/${id}`)
       .then((response) => {
@@ -48,7 +49,7 @@ function Recipe() {
         setRecipeObject(response.data);
       })
       .catch((error) => {
-        console.error("Error fetching recipe:", error.response || error);
+        console.error("Error fetching recipe:", error.response ? error.response.data : error.message);
       });
   };
 
@@ -65,9 +66,22 @@ function Recipe() {
   };
 
   const fetchIngredients = () => {
-    axios.get(`http://localhost:3001/ingredients/${id}`).then((response) => {
-      setIngridents(response.data);
-    });
+    axios.get(`http://localhost:3001/ingredients/${id}`)
+      .then((response) => {
+        if (response.data && response.data.length > 0) {
+          setIngridents(response.data);
+        } else {
+          setIngridents([]); 
+          console.log("No ingredients found for this recipe.");
+        }
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Error fetching ingredients:", error.response.data);
+        } else {
+          console.error("Error fetching ingredients:", error.message);
+        }
+      });
   };
 
   const addComment = () => {
@@ -140,26 +154,21 @@ function Recipe() {
   function formatTime(isoString) {
     const date = new Date(isoString);
 
-    // Get hours and minutes
     let hours = date.getHours();
     const minutes = date.getMinutes();
 
-    // Determine AM or PM suffix
     const ampm = hours >= 12 ? "PM" : "AM";
 
-    // Convert 24-hour time to 12-hour time
     hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
+    hours = hours ? hours : 12; 
 
-    // Format minutes to always be two digits
     const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
 
-    // Return formatted time
     return `${hours}:${formattedMinutes} ${ampm}`;
   }
 
   const isoString = "2024-10-03T15:07:11.000Z";
-  console.log(formatTime(isoString)); //
+  console.log(formatTime(isoString)); 
 
   const deleteIngridents = (id) => {
     axios
@@ -169,7 +178,7 @@ function Recipe() {
       .then(() => {
         setIngridents(
           ingridents.filter((val) => {
-            return val.id !== id; // Use strict inequality
+            return val.id !== id; 
           })
         );
       })
@@ -196,21 +205,21 @@ function Recipe() {
         if (response.data.error) {
           console.log(response.data.error);
         } else {
-          setNewSteps(""); // Clear the input
-          setLgShow(false); // Close the modal
-          setRefresh(!refresh); // Toggle refresh to re-fetch data
+          setNewSteps("");  
+          setLgShow(false);  
+          setRefresh(!refresh);  
         }
       });
   };
 
   const closeModal = () => {
     setLgShow(false);
-    setRefresh(!refresh); // Toggle refresh to re-fetch data
+    setRefresh(!refresh); 
   };
 
     const closeIngridentModal = () => {
       setIngridentShow(false);
-      setRefresh(!refresh); // Toggle refresh to re-fetch data
+      setRefresh(!refresh); 
     };
  
   return (
@@ -223,7 +232,7 @@ function Recipe() {
               <h2>{recipeObject.title}</h2>
 
               <p>
-                <strong>{authState.username}</strong>: {recipeObject.recipe}
+                <strong>{authState.username}</strong>: {recipeObject.desc}
               </p>
               <ReactStars
                 className="my-4"
@@ -260,8 +269,12 @@ function Recipe() {
             <div className=" ">
               <Card.Img
                 variant="bottom"
-                src="https://www.foodandwine.com/thmb/Wd4lBRZz3X_8qBr69UOu2m7I2iw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/classic-cheese-pizza-FT-RECIPE0422-31a2c938fc2546c9a07b7011658cfd05.jpg"
-                className="img-fluid rounded-2  "
+                src={
+                  recipeObject.avatar
+                    ? recipeObject.avatar
+                    : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                }
+                className="img-fluid rounded-2"
               />
             </div>
           </div>
@@ -283,6 +296,12 @@ function Recipe() {
             </div>
 
             <hr />
+            {ingridents.length <= 0 && (
+              <>
+                <h1>No Ingridents</h1>
+                <p>You might want to add some Ingridents 🍳</p>
+              </>
+            )}
             <ListGroup as="ol">
               {ingridents.map((item, key) => (
                 <ListGroup.Item key={key} as="li">
@@ -291,7 +310,7 @@ function Recipe() {
                       <FontAwesomeIcon
                         icon={faTrashCan}
                         className="delete-icon text-danger cursor-pointer"
-                        onClick={() => deleteIngridents(item.id)} // Correctly call deleteIngridents with item.id
+                        onClick={() => deleteIngridents(item.id)}
                         style={{ fontSize: "1.2rem" }}
                       />
                       <h1>{item.name}</h1>
@@ -390,7 +409,7 @@ function Recipe() {
               setNewSteps={setNewSteps}
               newSteps={newSteps}
               closeModal={closeModal}
-              setRefresh={setRefresh} // Pass setRefresh as a prop
+              setRefresh={setRefresh} 
             />
           </Modal.Body>
         </Modal>
@@ -413,7 +432,7 @@ function Recipe() {
         <div className="comments-list">
           {comments.map((comment, key) => (
             <div key={key} className="comment py-3">
-              {/* Conditionally render <hr /> for all comments except the first */}
+              
               {key !== 0 && <hr />}
               <div className="d-flex gap-3 my-3 align-items-start">
                 <Card.Img

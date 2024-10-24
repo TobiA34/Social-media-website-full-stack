@@ -1,109 +1,107 @@
-import React, { useState } from "react";
+import React, { useState,  } from "react";
 import axios from "axios";
+import { storage } from "../firebase";  
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { v4 } from "uuid";
 import { useNavigate } from "react-router-dom";
-import { Form, Button, Card, Alert, InputGroup, Container, Row, Col } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { Link } from "react-router-dom";
 
 function Registration() {
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [imageUpload, setImageUpload] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");  
+  const [imagePath, setImagePath] = useState(""); 
 
-  const [name, setName] = useState("");
-  const [validated, setValidated] = useState(false);
-  let navigate = useNavigate();
+ const navigate = useNavigate();
+  const uploadFile = () => {
+    return new Promise((resolve, reject) => {
+      if (imageUpload == null) {
+        reject("No image selected");
+        return;
+      }
 
-  const register = (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    if (form.checkValidity() === false) {
-      event.stopPropagation();
-    } else {
-      const data = { name: name, username: username, password: password };
-      console.log("Sending registration data:", data);
-      axios.post("http://localhost:3001/auth", data)
-        .then((response) => {
-          console.log("Registration response:", response.data);
-          navigate("/login");
-          alert("Registration successful");
+      const imageRef = ref(storage, `images/${imageUpload.name + v4()}`);
+      uploadBytes(imageRef, imageUpload)
+        .then((snapshot) => {
+          return getDownloadURL(snapshot.ref);
+        })
+        .then((url) => {
+          setImageUrl(url); 
+          setImagePath(imageRef.fullPath); 
+          resolve(url);  
         })
         .catch((error) => {
-          console.error("Registration error:", error.response ? error.response.data : error.message);
-          setError(error.response && error.response.data.message ? error.response.data.message : "Registration failed. Please try again.");
+          console.error("Error uploading image:", error);
+          reject(error);  
         });
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const avatarUrl = await uploadFile(); 
+
+      if (!avatarUrl) {
+        console.error("No image uploaded or upload failed");
+        return;
+      }
+      const formData = {
+        name,
+        username,
+        password,
+        avatar: avatarUrl, 
+        avatarPath: imagePath, 
+      };
+
+      console.log("Sending registration data:", formData);
+      navigate('/login')
+      const response = await axios.post(
+        "http://localhost:3001/auth/register",
+        formData
+      );
+      console.log("Registration response:", response.data); 
+    } catch (error) {
+      console.error("Error during registration:", error);
     }
-    setValidated(true);
   };
 
   return (
-    <Container fluid className="d-flex align-items-center justify-content-center vh-100 bg-light">
-      <Row className="justify-content-center w-100">
-        <Col xs={12} sm={10} md={8} lg={6} xl={5}>
-          <Card className="shadow-lg">
-            <Card.Body className="p-5">
-              <h1 className="text-center mb-4" style={{fontSize: "2.5rem", fontWeight: "bold"}}>Create your account</h1>
-              {error && <Alert variant="danger">{error}</Alert>}
-              <Form className="w-100" noValidate validated={validated} onSubmit={register}>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter your name"
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    minLength={2}
-                    maxLength={50}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Please enter your name (2-50 characters).
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="username">
-                  <Form.Label>Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter your username"
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    minLength={8}
-                    className="w-100"
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Please choose a username (minimum 8 characters).
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="password">
-                  <Form.Label>Password</Form.Label>
-                  <InputGroup className="w-100">
-                    <Form.Control
-                      placeholder="Enter your password"
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      className="w-100"
-                    />
-                 
-                    <Form.Control.Feedback type="invalid">
-                      Please enter a password (minimum 8 characters).
-                    </Form.Control.Feedback>
-                  </InputGroup>
-                </Form.Group>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="w-100 mt-3"
-                >
-                  Register
-                </Button>
-                <p className="text-center mt-3">Already have an account? <Link to="/login" className="text-decoration-none"><strong>Sign in</strong></Link></p>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(event) => {
+          setImageUpload(event.target.files[0]);
+        }}
+        className="form-control"
+        required
+      />
+      <button type="submit">Register</button>
+    </form>
   );
 }
 

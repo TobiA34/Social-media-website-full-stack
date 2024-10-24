@@ -28,16 +28,18 @@ function Home() {
   const [totalPages, setTotalPages] = useState(0);
   const [modalShow, setModalShow] = useState(false);
 
-  
+  const startIndex = (page - 1) * limit;
+  const endIndex = Math.min(startIndex + limit, totalRecipes);
+  const baseUrl = "http://localhost:3001/recipe/"
  
 
   useEffect(() => {
-    let isMounted = true; // Track if the component is mounted
+    let isMounted = true; 
 
     const fetchRecipes = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3001/recipe/v2?limit=${limit}&page=${page}`,
+          `${baseUrl}v2?limit=${limit}&page=${page}`,
           {
             headers: {
               accessToken: localStorage.getItem("accessToken"),
@@ -45,7 +47,7 @@ function Home() {
           }
         );
 
-        if (isMounted) { // Only update state if the component is still mounted
+        if (isMounted) { 
           const {
             listOfRecipes,
             totalRecipes,
@@ -72,7 +74,7 @@ function Home() {
     fetchRecipes();
 
     return () => {
-      isMounted = false; // Cleanup function to set isMounted to false
+      isMounted = false; 
     };
   }, [page, limit]);
 
@@ -94,12 +96,12 @@ function Home() {
     setLimit(limit + 5);
   };
 
-  // Extract unique categories from the list of recipes
+  
   const uniqueCategories = [
     ...new Set(
       listOfRecipes
         .map((recipe) => recipe.Category?.category_name)
-        .filter((category) => category) // Filter out any undefined/null values
+        .filter((category) => category) 
     ),
   ];
 
@@ -113,7 +115,6 @@ let filteredRecipes = (listOfRecipes || [])
       : recipe.Category && recipe.Category.category_name === selectedCategory
   );
 
-// Apply sorting based on sortState
 if (sortState === "ascending") {
   filteredRecipes = filteredRecipes.sort((a, b) =>
     a.title.localeCompare(b.title)
@@ -167,8 +168,30 @@ if (sortState === "ascending") {
       );
     }
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = Math.min(startIndex + limit, totalRecipes);
+    const deleteRecipe = (id) => {
+      const accessToken = localStorage.getItem("accessToken");
+      
+      if (!accessToken) {
+        console.error("User not logged in!");
+        return; 
+      }
+
+      console.log("Deleting recipe with ID:", id);
+      axios.delete(`http://localhost:3001/recipe/${id}`, {
+        headers: { accessToken: accessToken } 
+      })
+        .then(response => {
+          console.log("Recipe deleted:", response.data);
+          setListOfRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.id !== id));
+        })
+        .catch(error => {
+           if (error.response) {
+            console.error("Error deleting recipe:", error.response.data);
+          } else {
+            console.error("Network Error:", error.message);
+          }
+        });
+    };
 
   return (
     <div className="container mt-4">
@@ -244,11 +267,27 @@ if (sortState === "ascending") {
                       {value.Category.category_name}
                     </span>
                   </div>
+
                   <div className="card-body d-flex justify-content-between">
-                    <p className="card-text">{value.recipe}</p>
                     <FontAwesomeIcon
                       icon="pencil-alt"
                       onClick={() => navigate(`/edit/${value.id}`)}
+                    />
+                    <p className="card-text">{value.dec}</p>
+                    <FontAwesomeIcon
+                      icon="trash"
+                      onClick={() => deleteRecipe(value.id)}
+                    />
+                  </div>
+                  <div>
+                    <img
+                      src={
+                        value.avatar
+                          ? value.avatar
+                          : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                      }
+                      className="img-fluid p-3 "
+                      alt=""
                     />
                   </div>
                   <div className="card-footer d-flex justify-content-between align-items-center">

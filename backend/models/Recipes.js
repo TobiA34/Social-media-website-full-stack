@@ -4,7 +4,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    recipe: {
+    avatar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    desc: {
       type: DataTypes.TEXT,
       allowNull: false,
     },
