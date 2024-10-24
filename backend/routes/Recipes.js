@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Recipes, Likes,Categories,Steps, Users } = require("../models");
+const { Recipes, Likes,Categories,Steps, Users, Ingredients } = require("../models");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
 const { faker } = require("@faker-js/faker");
@@ -150,7 +150,7 @@ router.get("/v2/your-recipes/:id", validateToken, async (req, res) => {
       where: { UserId: req.user.id },
     });
 
-    const totalPages = Math.ceil(totalRecipes / limit); // Calculate total pages
+    const totalPages = Math.ceil(totalRecipes / limit); 
 
     const listOfRecipes = await Recipes.findAll({
       where: { UserId: req.user.id },
@@ -171,7 +171,7 @@ router.get("/v2/your-recipes/:id", validateToken, async (req, res) => {
       listOfRecipes,
       likedRecipes,
       totalRecipes,
-      totalPages, // Add totalPages to response
+      totalPages, 
       currentPage: page,
       nextPage: page < totalPages ? page + 1 : null,
       prevPage: page > 1 ? page - 1 : null,
@@ -193,13 +193,29 @@ router.post("/", validateToken, async (req, res) => {
 
 router.delete("/:recipeId", validateToken, async (req, res) => {
   const recipeId = req.params.recipeId;
-  await Recipes.destroy({
-    where: {
-      id: recipeId,
-    },
-  });
 
-  res.json("DELETED SUCCESSFULLY");
+  try {
+    await Ingredients.destroy({
+      where: {
+        RecipeId: recipeId,
+      },
+    });
+
+     const deletedCount = await Recipes.destroy({
+      where: {
+        id: recipeId,
+      },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+
+    res.json({ message: "DELETED SUCCESSFULLY" });
+  } catch (error) {
+    console.error("Error deleting recipe:", error);  
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
 });
 
  router.get("/byId/:id", async (req, res) => {
@@ -216,7 +232,7 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
 
 router.put("/byId/:id", async (req, res) => {
   const { id } = req.params;
-  const { title, recipe } = req.body;
+  const { title, desc, avatar } = req.body;
 
   try {
     const existingRecipe = await Recipes.findByPk(id);
@@ -224,7 +240,7 @@ router.put("/byId/:id", async (req, res) => {
       return res.status(404).json({ error: "Recipe not found" });
     }
 
-    await existingRecipe.update({ title, recipe });
+    await existingRecipe.update({ title, desc, avatar });
     res.json({
       message: "Recipe updated successfully",
       recipe: existingRecipe,

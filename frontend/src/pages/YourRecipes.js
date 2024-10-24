@@ -8,6 +8,10 @@ import PaginationComponent from "../Components/Pagination";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Button from "react-bootstrap/Button";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import Modal from "react-bootstrap/Modal";
+import CreateRecipe from "./CreateRecipe";
 
 library.add(fas);
 
@@ -23,6 +27,7 @@ function YourRecipes() {
   const [limit, setLimit] = useState(5);
   const [totalRecipes, setTotalRecipes] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [modalShow, setModalShow] = useState(false);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -65,6 +70,22 @@ function YourRecipes() {
     setPage(1);
   };
 
+    function MyVerticallyCenteredModal(props) {
+      return (
+        <Modal
+          {...props}
+          size="lg"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+        >
+          <Modal.Header closeButton></Modal.Header>
+          <Modal.Body>
+            <CreateRecipe onHide={props.onHide} />
+          </Modal.Body>
+        </Modal>
+      );
+    }
+
   const handleCategoryChange = (event) => {
     setSelectedCategory(event.target.value);
     setPage(1);
@@ -99,13 +120,12 @@ function YourRecipes() {
   const loadMore = () => {
     setLimit(limit + 5);
   };
-
-  // Extract unique categories from the list of recipes
+ 
   const uniqueCategories = [
     ...new Set(
       listOfRecipes
         .map((recipe) => recipe.Category?.category_name)
-        .filter((category) => category) // Filter out any undefined/null values
+        .filter((category) => category) 
     ),
   ];
 
@@ -137,7 +157,21 @@ function YourRecipes() {
     <div className="container mt-4">
       {localStorage.getItem("accessToken") && (
         <>
-        <h1>Your Recipes: {authState.username}</h1>
+          <div className="d-flex justify-content-between align-items-center ">
+            <div>
+              <h1 className="my-4">Your Recipes</h1>
+            </div>
+            <div>
+              <Button variant="primary" onClick={() => setModalShow(true)}>
+                <FontAwesomeIcon icon={faPlus} />
+              </Button>
+              <MyVerticallyCenteredModal
+                show={modalShow}
+                onHide={() => setModalShow(false)}
+              />
+            </div>
+          </div>
+
           <input
             type="text"
             className="form-control mb-3"
@@ -182,22 +216,35 @@ function YourRecipes() {
               <option value={20}>20</option>
             </select>
           </div>
-
-          <div className="row">
+          {/* List of Recipes */}
+          <div className="row my-4">
             {filteredRecipes.map((value, key) => (
-              <div key={key} className="col-12 col-md-6 col-lg-4 mb-4">
-                <div className="card">
+              <div key={key} className="col-12 col-md-6 col-lg-4 mb-4 my-3">
+                <div className="card h-100 ">
                   <div className="card-header d-flex justify-content-between">
                     <h5 className="card-title">{value.title}</h5>
                     <span className="d-flex badge bg-danger rounded-4 align-items-center">
                       {value.Category.category_name}
                     </span>
                   </div>
+
                   <div className="card-body d-flex justify-content-between">
-                    <p className="card-text">{value.recipe}</p>
+                    <p>{value.desc}</p>
+                    <p className="card-text">{value.dec}</p>
                     <FontAwesomeIcon
                       icon="pencil-alt"
                       onClick={() => navigate(`/edit/${value.id}`)}
+                    />
+                  </div>
+                  <div>
+                    <img
+                      src={
+                        value.avatar
+                          ? value.avatar
+                          : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                      }
+                      className="img-fluid p-3 "
+                      alt=""
                     />
                   </div>
                   <div className="card-footer d-flex justify-content-between align-items-center">
@@ -207,7 +254,7 @@ function YourRecipes() {
                     >
                       {value.username}
                     </Link>
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center">
                       <ThumbUpAltIcon
                         onClick={() => likeAPost(value.id)}
                         className={`like-icon ${
@@ -217,18 +264,15 @@ function YourRecipes() {
                       <span>{value.Likes.length}</span>
                     </div>
                   </div>
-                  <div className="card-footer text-center d-flex gap-2 align-items-center justify-content-center">
+                  <div
+                    className="card-footer text-center d-flex 
+                  gap-3"
+                  >
                     <button
                       onClick={() => navigate(`/recipe/${value.id}`)}
-                      className="btn btn-info w-25"
+                      className="btn btn-info w-100"
                     >
                       View Recipe
-                    </button>
-                    <button
-                      onClick={() => navigate(`/steps/${value.id}`)}
-                      className="btn btn-success w-25"
-                    >
-                      Add Steps
                     </button>
                   </div>
                 </div>
@@ -247,11 +291,9 @@ function YourRecipes() {
           </button>
         </>
       )}
-      {!localStorage.getItem("accessToken") && (
       <h1 className="mt-2">
         Showing recipes {endIndex} of {totalRecipes}
       </h1>
-      )}
     </div>
   );
 }

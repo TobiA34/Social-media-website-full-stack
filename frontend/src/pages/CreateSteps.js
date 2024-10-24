@@ -47,12 +47,12 @@ function CreateSteps({ closeModal = () => {}, setRefresh, refresh }) {
         setSteps([...steps, stepsToAdd]);
         console.log("Captured ID:", id);
         const url = `/recipe/${id}`;
-        navigate(url); // Debugging line
+        navigate(url);  
         console.log(url);
-        // Refresh the parent component to fetch new steps
+         
         setRefresh(!refresh);
         closeModal();
-        // Clear the input and close the modal
+         
         setNewSteps("");
        });
   };

@@ -13,7 +13,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    avatar: {
+      type: DataTypes.STRING, // URL of the avatar
+      allowNull: true,
+    },
+    avatarPath: {
+      type: DataTypes.STRING, // Path of the avatar
+      allowNull: true,
+    },
   });
 
   return Users;
 };
+
