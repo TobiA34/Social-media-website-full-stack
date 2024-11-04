@@ -227,8 +227,29 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
      res.status(404).json({ error: "Recipe not found" });
    }
  });
-
  
+// Route to update bookmark status
+ router.put("/:id/bookmark", async (req, res) => {
+   const { id } = req.params;
+   const { isBookedMarked } = req.body;
+
+   try {
+     // Find the recipe by ID and update the isBookedMarked field
+     const [updated] = await Recipes.update(
+       { isBookedMarked }, // Updated field
+       { where: { id } } // Condition to find the correct record
+     );
+
+     if (updated) {
+       return res.status(200).json({ message: "Recipe updated successfully" });
+     }
+
+     return res.status(404).json({ message: "Recipe not found" });
+   } catch (error) {
+     console.error("Error updating recipe:", error);
+     return res.status(500).json({ message: "Error updating recipe", error });
+   }
+ });
 
 router.put("/byId/:id", async (req, res) => {
   const { id } = req.params;
@@ -250,6 +271,9 @@ router.put("/byId/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update recipe" });
   }
 });
+
+
+
 
  
 

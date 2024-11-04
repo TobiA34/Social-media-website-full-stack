@@ -1,6 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { Users } = require("../models");
+const {
+  Recipes,
+  Likes,
+  Categories,
+  Steps,
+  Users,
+} = require("../models");
+
 const bcrypt = require("bcrypt");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { sign } = require("jsonwebtoken");
@@ -154,5 +161,28 @@ router.post('/auth/user/:userId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+// SELECT * FROM Recipes where isBookedMarked = 1 and userId = 2;
+router.get("/saved-recipes/:id", validateToken, async (req, res) => {
+ 
+  try {
+    const listOfRecipes = await Recipes.findAll({
+      include: [
+        { model: Categories, required: false },
+        { model: Steps, required: false },
+      ],
+      where: { UserId: req.user.id, isBookedMarked: 1 },
+    });
+
+    res.json({
+      listOfRecipes: listOfRecipes,
+    });
+  } catch (error) {
+    console.error("Error fetching saved recipes:", error); // Add more context
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+  
 
 module.exports = router;

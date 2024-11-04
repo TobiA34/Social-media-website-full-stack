@@ -28,7 +28,7 @@ function YourRecipes() {
   const [totalRecipes, setTotalRecipes] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [modalShow, setModalShow] = useState(false);
-
+  const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
@@ -91,36 +91,91 @@ function YourRecipes() {
     setPage(1);
   };
 
-    const likeAPost = (postId) => {
-    axios
-      .post(
-        "http://localhost:3001/likes",
-        { PostId: postId },
-        { headers: { accessToken: localStorage.getItem("accessToken") } }
-      )
-      .then((response) => {
-        setListOfRecipes(
-          listOfRecipes.map((post) => {
-            if (post.id === postId) {
-              if (response.data.liked) {
-                return { ...post, Likes: [...post.Likes, 0] };
-              } else {
-                const likesArray = post.Likes;
-                likesArray.pop();
-                return { ...post, Likes: likesArray };
-              }
-            } else {
-              return post;
-            }
-          })
-        );
-      });
-    };
+    // const likeAPost = (postId) => {
+    // axios
+    //   .post(
+    //     "http://localhost:3001/likes",
+    //     { PostId: postId },
+    //     { headers: { accessToken: localStorage.getItem("accessToken") } }
+    //   )
+    //   .then((response) => {
+    //     setListOfRecipes(
+    //       listOfRecipes.map((post) => {
+    //         if (post.id === postId) {
+    //           if (response.data.liked) {
+    //             return { ...post, Likes: [...post.Likes, 0] };
+    //           } else {
+    //             const likesArray = post.Likes;
+    //             likesArray.pop();
+    //             return { ...post, Likes: likesArray };
+    //           }
+    //         } else {
+    //           return post;
+    //         }
+    //       })
+    //     );
+    //   });
+    // };
+  const deleteRecipe = (id) => {
+    const accessToken = localStorage.getItem("accessToken");
 
+    if (!accessToken) {
+      console.error("User not logged in!");
+      return;
+    }
+
+    console.log("Deleting recipe with ID:", id);
+    axios
+      .delete(`http://localhost:3001/recipe/${id}`, {
+        headers: { accessToken: accessToken },
+      })
+      .then((response) => {
+        console.log("Recipe deleted:", response.data);
+        setListOfRecipes((prevRecipes) =>
+          prevRecipes.filter((recipe) => recipe.id !== id)
+        );
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Error deleting recipe:", error.response.data);
+        } else {
+          console.error("Network Error:", error.message);
+        }
+      });
+  };
   const loadMore = () => {
     setLimit(limit + 5);
   };
  
+  const bookmarkRecipe = async (recipeId) => {
+    console.log("Clicked on recipe ID:", recipeId);
+
+    // Check if the recipe is already bookmarked
+    const alreadyBookmarked = bookmarkedRecipes.includes(recipeId);
+
+    // Toggle bookmark state
+    const updatedBookmarks = alreadyBookmarked
+      ? bookmarkedRecipes.filter((id) => id !== recipeId) // Remove from bookmarks
+      : [...bookmarkedRecipes, recipeId]; // Add to bookmarks
+
+    setBookmarkedRecipes(updatedBookmarks); // Update local state
+
+    // Save updated bookmarks to local storage
+    localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
+
+    // API call to update bookmark status in the database
+    try {
+      await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
+        isBookedMarked: !alreadyBookmarked, // Send the opposite of current state
+      });
+      console.log("Bookmark status updated successfully");
+    } catch (error) {
+      console.error("Error updating bookmark status:", error);
+      // Optionally revert state change if API call fails
+      setBookmarkedRecipes(bookmarkedRecipes); // Reset to previous state on failure
+    }
+  };
+
   const uniqueCategories = [
     ...new Set(
       listOfRecipes
@@ -128,6 +183,7 @@ function YourRecipes() {
         .filter((category) => category) 
     ),
   ];
+  
 
   let filteredRecipes = (listOfRecipes || [])
     .filter((recipe) =>
@@ -216,64 +272,54 @@ function YourRecipes() {
               <option value={20}>20</option>
             </select>
           </div>
+
           {/* List of Recipes */}
           <div className="row my-4">
             {filteredRecipes.map((value, key) => (
               <div key={key} className="col-12 col-md-6 col-lg-4 mb-4 my-3">
-                <div className="card h-100 ">
+                <div className="card h-100">
                   <div className="card-header d-flex justify-content-between">
                     <h5 className="card-title">{value.title}</h5>
                     <span className="d-flex badge bg-danger rounded-4 align-items-center">
                       {value.Category.category_name}
                     </span>
                   </div>
-
-                  <div className="card-body d-flex justify-content-between">
-                    <p>{value.desc}</p>
-                    <p className="card-text">{value.dec}</p>
-                    <FontAwesomeIcon
-                      icon="pencil-alt"
-                      onClick={() => navigate(`/edit/${value.id}`)}
-                    />
-                  </div>
-                  <div>
-                    <img
-                      src={
-                        value.avatar
-                          ? value.avatar
-                          : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
-                      }
-                      className="img-fluid p-3 "
-                      alt=""
-                    />
-                  </div>
-                  <div className="card-footer d-flex justify-content-between align-items-center">
-                    <Link
-                      to={`/profile/${value.UserId}`}
-                      className="link-primary"
-                    >
-                      {value.username}
-                    </Link>
-                    <div className="d-flex align-items-center">
-                      <ThumbUpAltIcon
-                        onClick={() => likeAPost(value.id)}
-                        className={`like-icon ${
-                          likedRecipes.includes(value.id) ? "liked" : ""
-                        }`}
-                      />
-                      <span>{value.Likes.length}</span>
-                    </div>
-                  </div>
-                  <div
-                    className="card-footer text-center d-flex 
-                  gap-3"
+                  <i
+                    onClick={() => bookmarkRecipe(value.id)}
+                    className={`heart ${
+                      bookmarkedRecipes.includes(value.id) ? "bookmarked" : ""
+                    }`}
+                    style={{
+                      color: bookmarkedRecipes.includes(value.id)
+                        ? "red"
+                        : "grey",
+                    }} // Change color based on bookmark status
                   >
-                    <button
-                      onClick={() => navigate(`/recipe/${value.id}`)}
-                      className="btn btn-info w-100"
-                    >
-                      View Recipe
-                    </button>
+                    <FontAwesomeIcon icon="heart" />
+                  </i>
+                  <img
+                    src={
+                      value.avatar
+                        ? value.avatar
+                        : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                    }
+                    className="img-fluid"
+                    alt=""
+                    onClick={() => navigate(`/recipe/${value.id}`)}
+                  />
+
+                  <div className="card-footer text-center d-flex gap-3">
+                    <div className="card-body d-flex justify-content-between">
+                      <FontAwesomeIcon
+                        icon="pencil-alt"
+                        onClick={() => navigate(`/edit/${value.id}`)}
+                      />
+                      <p className="card-text">{value.dec}</p>
+                      <FontAwesomeIcon
+                        icon="trash"
+                        onClick={() => deleteRecipe(value.id)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
