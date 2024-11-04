@@ -90,26 +90,25 @@ function EditRecipe() {
         return;
       }
 
- 
-    axios
-      .put(`http://localhost:3001/recipe/byId/${id}`, {
-        title: recipe.title,
-        recipe: recipe.desc,
-        avatar: avatarUrl
-      })
-      .then((response) => {
-        console.log("Update response:", response.data);
-        alert("Recipe updated successfully");
-        navigate(`/`);
-      })
-      .catch((error) => {
-        console.error("Error updating recipe:", error);
-        if (error.response) {
-          console.error("Response data:", error.response.data);
-          console.error("Response status:", error.response.status);
-        }
-        alert("Failed to update recipe. Please try again.");
-      });
+axios
+  .put(`http://localhost:3001/recipe/byId/${id}`, {
+    title: recipe.title,
+    desc: recipe.desc, // Ensure "desc" is used instead of "recipe"
+    avatar: avatarUrl,
+  })
+  .then((response) => {
+    console.log("Update response:", response.data);
+    alert("Recipe updated successfully");
+    navigate(`/`);
+  })
+  .catch((error) => {
+    console.error("Error updating recipe:", error);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+    }
+    alert("Failed to update recipe. Please try again.");
+  });
   };
 
   return (

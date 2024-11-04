@@ -25,6 +25,7 @@ import EditRecipe from "./pages/EditRecipe";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import UpdateImage from "./pages/UpdateImage";
+import FooterComp from "./Components/FooterComp";
 
 function App() {
   const [authState, setAuthState] = useState({
@@ -183,6 +184,7 @@ function App() {
           </Routes>
         </Router>
       </AuthContext.Provider>
+      <FooterComp/>
     </div>
   );
 }

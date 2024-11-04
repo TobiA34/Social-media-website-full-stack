@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    isBookedMarked: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+     },
+
     CategoryId: {
       type: DataTypes.INTEGER,
       allowNull: true,

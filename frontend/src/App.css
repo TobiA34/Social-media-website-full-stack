@@ -10,6 +10,10 @@ body {
   margin: 0;
   padding: 0;
 }
+
+img {
+  object-fit:fill;
+}
  
 /* CREATE Recipe PAGE CSS */
 
@@ -89,10 +93,7 @@ button {
 .loginContainer input {
   border: 2px solid dodgerblue;
 }
-
-/* input[type="file"] {
-  display: none;
-} */
+ 
 
 .custom-file-upload {
   border: 1px solid cornflowerblue;
@@ -104,5 +105,26 @@ button {
   font-size: 14px;
   display: flex;
   align-items: center;
-  
+}
+
+.heart {
+  cursor: pointer;
+  font-size: 1rem;  
+  position: absolute;
+  top: 20%;
+  left: 5%;
+  border: 2px solid wheat;
+  border-radius: 50%;
+  padding: 8px;
+}
+
+.heart.bookmarked {
+  color: red;  
+}
+
+.heart:not(.bookmarked) {
+  color: gray; 
+}
+.file-input {
+   width: 40%;
 }

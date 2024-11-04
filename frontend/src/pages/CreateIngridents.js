@@ -4,7 +4,8 @@ import Modal from "react-bootstrap/Modal";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";  
 import { AuthContext } from "../helpers/AuthContext";  
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
 function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh }) {
   const [newIngrident, setNewIngrident] = useState({
@@ -74,7 +75,7 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
           console.log("New Ingredient Object:", response.data); 
           setMessage("Ingredient added successfully!"); 
           handleClose(); 
-          refreshIngredients(); 
+          // refreshIngredients(); 
           navigate(`/recipe`); 
         }
       })

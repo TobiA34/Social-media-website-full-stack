@@ -3286,8 +3286,8 @@ code {
 }
 
 .image-container {
-  width: 180px;
-  height: 120px; /* Full viewport height */
+  width: 200px;
+  height: 200px; /* Full viewport height */
   overflow: hidden;
 }
 
