@@ -75,7 +75,6 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
           console.log("New Ingredient Object:", response.data); 
           setMessage("Ingredient added successfully!"); 
           handleClose(); 
-          // refreshIngredients(); 
           navigate(`/recipe`); 
         }
       })

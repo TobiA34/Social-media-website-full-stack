@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
@@ -12,6 +12,22 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import CreateSteps from "./CreateSteps";
 import CreateIngridents from "./CreateIngridents";
+import Overlay from "react-bootstrap/Overlay";
+import Popover from "react-bootstrap/Popover";
+import {
+  EmailShareButton,
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+} from "react-share";
+import {
+  EmailIcon,
+  FacebookIcon,
+  LineIcon,
+  LinkedinIcon,
+  TwitterIcon,
+  WhatsappIcon,
+} from "react-share";
 
 function Recipe() {
   let { id } = useParams();
@@ -25,11 +41,13 @@ function Recipe() {
  
   const [editShow, setEditShow] = useState(false);
   const [refresh, setRefresh] = useState(false); 
+  const [show,setShow] = useState(false)
 
   const [newComment, setNewComment] = useState("");
   const { authState } = useContext(AuthContext);
 
   const [ingridents, setIngridents] = useState([])
+  const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
 
   let navigate = useNavigate();
 
@@ -38,7 +56,24 @@ function Recipe() {
     fetchComments();
     fetchSteps();
     fetchIngredients();
-  }, [id, refresh]); 
+    if (show) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [id, refresh, show]); 
+
+
+  const [target, setTarget] = useState(null);
+  const ref = useRef(null);
+
+  const handleClick = (event) => {
+    setShow(!show);
+    setTarget(event.target);
+  };
 
   const fetchRecipeData = () => {
     console.log("Fetching recipe with ID:", id);  
@@ -82,6 +117,36 @@ function Recipe() {
           console.error("Error fetching ingredients:", error.message);
         }
       });
+  };
+
+
+  const bookmarkRecipe = async (recipeId) => {
+    console.log("Clicked on recipe ID:", recipeId);
+
+    // Check if the recipe is already bookmarked
+    const alreadyBookmarked = bookmarkedRecipes.includes(recipeId);
+
+    // Toggle bookmark state
+    const updatedBookmarks = alreadyBookmarked
+      ? bookmarkedRecipes.filter((id) => id !== recipeId) // Remove from bookmarks
+      : [...bookmarkedRecipes, recipeId]; // Add to bookmarks
+
+    setBookmarkedRecipes(updatedBookmarks); // Update local state
+
+    // Save updated bookmarks to local storage
+    localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
+
+    // API call to update bookmark status in the database
+    try {
+      await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
+        isBookedMarked: !alreadyBookmarked, // Send the opposite of current state
+      });
+      console.log("Bookmark status updated successfully");
+    } catch (error) {
+      console.error("Error updating bookmark status:", error);
+      // Optionally revert state change if API call fails
+      setBookmarkedRecipes(bookmarkedRecipes); // Reset to previous state on failure
+    }
   };
 
   const addComment = () => {
@@ -139,6 +204,7 @@ function Recipe() {
         );
       });
   };
+  const shareRecipe = () => {};
 
   const deletePost = (id) => {
     axios
@@ -150,6 +216,12 @@ function Recipe() {
       });
   };
  
+   const handleOutsideClick = (event) => {
+     if (ref.current && !ref.current.contains(event.target)) {
+       setShow(false);
+     }
+   };
+
 
   function formatTime(isoString) {
     const date = new Date(isoString);
@@ -224,7 +296,7 @@ function Recipe() {
  
   return (
     <div className="container-fluid bg-light">
-      <h1 className="text-center">{recipeObject.title}</h1>
+      {/* <h1 className="text-center">{recipeObject.title}</h1> */}
       <div class="container mt-36">
         <div class="row ">
           <div class="col-md-5 col-lg- col-12 mb-3">
@@ -262,6 +334,78 @@ function Recipe() {
                   </h2>
                   <p>Calories</p>
                 </div>
+
+                <div ref={ref} className="d-flex align-items-center border">
+                  <i
+                    onClick={() => bookmarkRecipe(recipeObject.id)}
+                    className={`heart ${
+                      bookmarkedRecipes.includes(recipeObject.id)
+                        ? "bookmarked"
+                        : ""
+                    }`}
+                    style={{
+                      color: bookmarkedRecipes.includes(recipeObject.id)
+                        ? "red"
+                        : "grey",
+                    }} // Change color based on bookmark status
+                  >
+                    <FontAwesomeIcon icon="heart" />
+                  </i>
+
+                  <Button onClick={handleClick} className="share-btn">
+                    {" "}
+                    <FontAwesomeIcon
+                      icon="share"
+                      className="share"
+                      onClick={() => shareRecipe()}
+                    />
+                  </Button>
+
+                  <Overlay
+                    show={show}
+                    target={target}
+                    placement="top"
+                    container={ref}
+                    containerPadding={20}
+                  >
+                    <Popover id="popover-contained">
+                      <Popover.Header as="h3">Share</Popover.Header>
+                      <Popover.Body className="d-flex my-2 gap-1 p-4">
+                        <FacebookShareButton
+                          url="www.google.com"
+                          quote={"hey subscribe"}
+                          title="test123"
+                          hashtag="#dishswap"
+                        >
+                          <FacebookIcon size={70} round={true}></FacebookIcon>
+                        </FacebookShareButton>
+                        <WhatsappShareButton
+                          url="www.google.com"
+                          quote={"hey subscribe"}
+                          title="test123"
+                          hashtag="#dishswap"
+                        >
+                          <WhatsappIcon size={70} round={true}></WhatsappIcon>
+                        </WhatsappShareButton>
+
+                        <EmailShareButton
+                          url={""}
+                          subject={recipeObject.title}
+                          body={recipeObject.desc}
+                          className="Demo__some-network__share-button"
+                        >
+                          <EmailIcon size={70} round />
+                        </EmailShareButton>
+                      </Popover.Body>
+                    </Popover>
+                  </Overlay>
+                </div>
+              </div>
+              <div className="card-body d-flex justify-content-between">
+                {/* <FontAwesomeIcon
+                        icon="pencil-alt"
+                        onClick={() => navigate(`/edit/${recipeObject.id}`)}
+                      /> */}
               </div>
             </div>
           </div>
@@ -409,7 +553,7 @@ function Recipe() {
               setNewSteps={setNewSteps}
               newSteps={newSteps}
               closeModal={closeModal}
-              setRefresh={setRefresh} 
+              setRefresh={setRefresh}
             />
           </Modal.Body>
         </Modal>
@@ -432,7 +576,6 @@ function Recipe() {
         <div className="comments-list">
           {comments.map((comment, key) => (
             <div key={key} className="comment py-3">
-              
               {key !== 0 && <hr />}
               <div className="d-flex gap-3 my-3 align-items-start">
                 <Card.Img

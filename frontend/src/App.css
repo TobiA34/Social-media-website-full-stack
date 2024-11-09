@@ -109,11 +109,11 @@ button {
 
 .heart {
   cursor: pointer;
-  font-size: 1rem;  
-  position: absolute;
-  top: 20%;
-  left: 5%;
-  border: 2px solid wheat;
+  font-size: 2rem;  
+  /* position: absolute; */
+  /* top: 37%;
+  left: 4%; */
+  /* border: 2px solid wheat; */
   border-radius: 50%;
   padding: 8px;
 }
@@ -127,4 +127,94 @@ button {
 }
 .file-input {
    width: 40%;
+}
+
+.social-media-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.share-btn {
+   background-color: transparent !important;
+  border: none  !important;
+}
+
+.share {
+  color: black;
+}
+
+.email-img {
+background-image:url(https://cdn-icons-png.flaticon.com/256/9840/9840614.png);
+background-repeat:no-repeat;
+background-position: center;
+background-size: cover;
+width: 40px;
+ 
+}
+
+.popover {
+  width: 500px;
+}
+
+.rounded-card {
+  border-radius: 0px 0px 28px 28px;
+  background: white;
+}
+
+.rounded-card-img {
+  border-radius: 28px 28px 0px 0px;
+
+}
+
+/* Styles for the active link */
+.active-link {
+  font-weight: bold;
+  color: #ff6347; /* Tomato color, adjust as needed */
+  text-decoration: underline;
+}
+
+.hero {
+   padding: 50px ;
+}
+
+.hero-image-col {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.logout-btn{
+  width: 100px;
+  border: 1px solid red;
+  background: none;
+  border-radius: 24px;
+  height: 35px;
+}
+.hero-image {
+  width: 100%;
+  height: auto;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.hero-content {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.remove-bg {
+  background: none;
+  border-radius: 24px;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 20px 0;
+  }
+  .hero-image-col {
+    max-height: 300px; /* Adjust height on smaller screens */
+  }
+  .hero-image {
+    border-radius: 10px;
+  }
 }

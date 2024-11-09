@@ -85,7 +85,7 @@ function App() {
       <AuthContext.Provider value={{ authState, setAuthState }}>
         <Router>
           <div>
-            <Navbar expand="lg" className="bg-body-tertiary">
+            <Navbar expand="lg" className="bg-body-tertiary p-3">
               <Navbar.Brand href="#/">DishSwap</Navbar.Brand>
               <Navbar.Toggle
                 aria-controls="basic-navbar-nav"
@@ -141,7 +141,7 @@ function App() {
                       </h5>
                       <button
                         onClick={logout}
-                        className="btn btn-outline-danger"
+                        className="logout-btn"
                       >
                         Logout
                       </button>
@@ -184,8 +184,7 @@ function App() {
           </Routes>
         </Router>
       </AuthContext.Provider>
-      <FooterComp/>
-    </div>
+     </div>
   );
 }
 

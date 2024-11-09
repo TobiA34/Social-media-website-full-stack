@@ -5,6 +5,10 @@ import { AuthContext } from "../helpers/AuthContext";
 import { storage } from "../firebase"; // Import your Firebase storage configuration
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate, Link } from "react-router-dom";
+ import { faPlus } from "@fortawesome/free-solid-svg-icons";
+ import Button from "react-bootstrap/Button";
+ import Modal from "react-bootstrap/Modal";
+ import CreateRecipe from "./CreateRecipe";
 
 import {
   ref,
@@ -29,6 +33,7 @@ function Profile() {
   const [imagePreview, setImagePreview] = useState("");
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
+  const [modalShow, setModalShow] = useState(false);
 
   const deleteRecipe = (id) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -64,6 +69,8 @@ function Profile() {
         reject("No image selected");
         return;
       }
+
+
 
       const imageRef = ref(storage, `images/${imageUpload.name + v4()}`);
       uploadBytes(imageRef, imageUpload)
@@ -121,6 +128,24 @@ function Profile() {
       alert("No file selected.");
     }
   };
+
+
+
+  function MyVerticallyCenteredModal(props) {
+    return (
+      <Modal
+        {...props}
+        size="lg"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <CreateRecipe onHide={props.onHide} />
+        </Modal.Body>
+      </Modal>
+    );
+  }
 
   const deleteAvatar = async () => {
     console.log("Deleting avatar for userId:", userId);
@@ -272,22 +297,39 @@ function Profile() {
                     className="avatar img-fluid image-container"
                     alt="Profile Avatar"
                   />
-                  <label htmlFor="file-upload" className="file-input border h-25">
+                  <label
+                    htmlFor="file-upload"
+                    className="file-input border h-25"
+                  >
                     <input
                       id="file-upload"
                       type="file"
                       onChange={handleImageChange}
                       accept="image/*" // Allow only image files
                     />
-                   </label>
+                  </label>
                   <button className="btn btn-danger" onClick={deleteAvatar}>
                     Delete Avatar
                   </button>
                 </div>
- 
+
                 <button className="btn btn-primary" onClick={handleSubmit}>
                   Save Image
                 </button>
+              </div>
+            </div>
+
+            {/* Create your own recipes */}
+            <div className="d-flex gap-5 mt-60">
+              <h1>Create Your Own Recipes</h1>
+              <div>
+                <Button variant="primary" onClick={() => setModalShow(true)}>
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
+                <MyVerticallyCenteredModal
+                  show={modalShow}
+                  onHide={() => setModalShow(false)}
+                />
               </div>
             </div>
             {/* Saved Recipes */}
