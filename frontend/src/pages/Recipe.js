@@ -17,19 +17,17 @@ import Popover from "react-bootstrap/Popover";
 import {
   EmailShareButton,
   FacebookShareButton,
-  TwitterShareButton,
   WhatsappShareButton,
 } from "react-share";
 import {
   EmailIcon,
   FacebookIcon,
-  LineIcon,
-  LinkedinIcon,
-  TwitterIcon,
   WhatsappIcon,
 } from "react-share";
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 
-function Recipe() {
+ function Recipe() {
   let { id } = useParams();
   const [recipeObject, setRecipeObject] = useState({});
   const [comments, setComments] = useState([]);
@@ -78,35 +76,39 @@ function Recipe() {
   const fetchRecipeData = () => {
     console.log("Fetching recipe with ID:", id);  
     axios
-      .get(`http://localhost:3001/recipe/byId/${id}`)
+      .get(`${API_BASE_URL}recipe/byId/${id}`)
       .then((response) => {
         console.log("Recipe data fetched:", response.data);
         setRecipeObject(response.data);
       })
       .catch((error) => {
-        console.error("Error fetching recipe:", error.response ? error.response.data : error.message);
+        console.error(
+          "Error fetching recipe:",
+          error.response ? error.response.data : error.message
+        );
       });
   };
 
   const fetchComments = () => {
-    axios.get(`http://localhost:3001/comments/${id}`).then((response) => {
+    axios.get(`${API_BASE_URL}comments/${id}`).then((response) => {
       setComments(response.data);
     });
   };
 
   const fetchSteps = () => {
-    axios.get(`http://localhost:3001/steps/${id}`).then((response) => {
+    axios.get(`${API_BASE_URL}steps/${id}`).then((response) => {
       setSteps(response.data);
     });
   };
 
   const fetchIngredients = () => {
-    axios.get(`http://localhost:3001/ingredients/${id}`)
+    axios
+      .get(`${API_BASE_URL}ingredients/${id}`)
       .then((response) => {
         if (response.data && response.data.length > 0) {
           setIngridents(response.data);
         } else {
-          setIngridents([]); 
+          setIngridents([]);
           console.log("No ingredients found for this recipe.");
         }
       })
@@ -134,8 +136,8 @@ function Recipe() {
      localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
 
      try {
-      await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
-        isBookedMarked: !alreadyBookmarked, 
+      await axios.put(`${API_BASE_URL}recipe/${recipeId}/bookmark`, {
+        isBookedMarked: !alreadyBookmarked,
       });
       console.log("Bookmark status updated successfully");
     } catch (error) {
@@ -147,14 +149,14 @@ function Recipe() {
   const addComment = () => {
     axios
       .post(
-        "http://localhost:3001/comments",
+        `${API_BASE_URL}comments`,
         {
           commentBody: newComment,
           RecipeId: id,
         },
         {
           headers: {
-            accessToken: localStorage.getItem("accessToken"),
+            accessToken: localStorage.getItem(ACCESS_TOKEN),
           },
         }
       )
@@ -174,8 +176,8 @@ function Recipe() {
 
   const deleteComment = (id) => {
     axios
-      .delete(`http://localhost:3001/comments/${id}`, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
+      .delete(`${API_BASE_URL}comments/${id}`, {
+        headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
       })
       .then(() => {
         setComments(
@@ -188,8 +190,8 @@ function Recipe() {
 
   const deleteSteps = (id) => {
     axios
-      .delete(`http://localhost:3001/steps/${id}`, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
+      .delete(`${API_BASE_URL}steps/${id}`, {
+        headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
       })
       .then(() => {
         setSteps(
@@ -203,8 +205,8 @@ function Recipe() {
 
   const deletePost = (id) => {
     axios
-      .delete(`http://localhost:3001/recipe/${id}`, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
+      .delete(`${API_BASE_URL}recipe/${id}`, {
+        headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
       })
       .then(() => {
         navigate("/");
@@ -239,43 +241,21 @@ function Recipe() {
 
   const deleteIngridents = (id) => {
     axios
-      .delete(`http://localhost:3001/ingredients/${id}`, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
+      .delete(`${API_BASE_URL}ingredients/${id}`, {
+        headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
       })
       .then(() => {
         setIngridents(
           ingridents.filter((val) => {
-            return val.id !== id; 
+            return val.id !== id;
           })
         );
       })
       .catch((error) => {
-        console.error("Error deleting ingredient:", error.response ? error.response.data : error.message);
-      });
-  };
-
-  const handleAddSteps = () => {
-    axios
-      .post(
-        "http://localhost:3001/steps",
-        {
-          step_name: newSteps,
-          RecipeId: id,
-        },
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
-        }
-      )
-      .then((response) => {
-        if (response.data.error) {
-          console.log(response.data.error);
-        } else {
-          setNewSteps("");  
-          setLgShow(false);  
-          setRefresh(!refresh);  
-        }
+        console.error(
+          "Error deleting ingredient:",
+          error.response ? error.response.data : error.message
+        );
       });
   };
 
@@ -291,7 +271,6 @@ function Recipe() {
  
   return (
     <div className="container-fluid bg-light">
-      {/* <h1 className="text-center">{recipeObject.title}</h1> */}
       <div class="container mt-36">
         <div class="row ">
           <div class="col-md-5 col-lg- col-12 mb-3">
@@ -342,7 +321,7 @@ function Recipe() {
                       color: bookmarkedRecipes.includes(recipeObject.id)
                         ? "red"
                         : "grey",
-                    }} // Change color based on bookmark status
+                    }}
                   >
                     <FontAwesomeIcon icon="heart" />
                   </i>
@@ -396,12 +375,6 @@ function Recipe() {
                   </Overlay>
                 </div>
               </div>
-              <div className="card-body d-flex justify-content-between">
-                {/* <FontAwesomeIcon
-                        icon="pencil-alt"
-                        onClick={() => navigate(`/edit/${recipeObject.id}`)}
-                      /> */}
-              </div>
             </div>
           </div>
           <div class="col-md-5 col-lg-7  col-12 mb-3 mt-16">
@@ -426,12 +399,14 @@ function Recipe() {
             <div className="d-flex">
               <h2 className="">Ingridents</h2>
 
-              <Button
-                className="btn btn-primary ms-5 nav-btn"
-                onClick={() => setIngridentShow(true)}
-              >
-                +
-              </Button>
+              {localStorage.getItem(ACCESS_TOKEN) && (
+                <Button
+                  className="btn btn-primary ms-5 nav-btn"
+                  onClick={() => setIngridentShow(true)}
+                >
+                  +
+                </Button>
+              )}
             </div>
 
             <hr />
@@ -485,12 +460,14 @@ function Recipe() {
         <div className="d-flex">
           <h2 className>Steps</h2>
 
-          <Button
-            className="btn btn-primary ms-5 nav-btn"
-            onClick={() => setLgShow(true)}
-          >
-            +
-          </Button>
+          {localStorage.getItem(ACCESS_TOKEN) && (
+            <Button
+              className="btn btn-primary ms-5 nav-btn"
+              onClick={() => setLgShow(true)}
+            >
+              +
+            </Button>
+          )}
         </div>
         <hr />
         {steps.length <= 0 && (
@@ -524,10 +501,11 @@ function Recipe() {
                 })}
               </div>
               <div>
-                {/*  onClick={() => setLgShow(true) */}
-                <button className=" ms-2 w-75" o>
-                  <FontAwesomeIcon icon={faPencil} />
-                </button>
+                {localStorage.getItem(ACCESS_TOKEN) && (
+                  <button className=" ms-2 w-75" o>
+                    <FontAwesomeIcon icon={faPencil} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -566,64 +544,66 @@ function Recipe() {
       </div>
 
       {/* Comments   */}
-      <div className="container-fluid w-100 border border-light shadow-sm rounded-3 p-4 bg-white mt-24">
-        <strong className="fs-1">Comments</strong>
-        <div className="comments-list">
-          {comments.map((comment, key) => (
-            <div key={key} className="comment py-3">
-              {key !== 0 && <hr />}
-              <div className="d-flex gap-3 my-3 align-items-start">
-                <Card.Img
-                  variant="bottom"
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyzTWQoCUbRNdiyorem5Qp1zYYhpliR9q0Bw&s"
-                  className="comment-img rounded-circle border border-light"
-                  style={{ width: "50px", height: "50px" }}
-                />
-                <div className="comment-body w-100">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <strong className="fs-5">{comment.username}</strong>
-                    <div className="d-flex align-items-center gap-2 text-muted small">
-                      <FontAwesomeIcon
-                        icon={faDotCircle}
-                        className="dot-icon"
-                      />
-                      <span>{formatTime(comment.createdAt)}</span>
+      {localStorage.getItem(ACCESS_TOKEN) && (
+        <div className="container-fluid w-100 border border-light shadow-sm rounded-3 p-4 bg-white mt-24">
+          <strong className="fs-1">Comments</strong>
+          <div className="comments-list">
+            {comments.map((comment, key) => (
+              <div key={key} className="comment py-3">
+                {key !== 0 && <hr />}
+                <div className="d-flex gap-3 my-3 align-items-start">
+                  <Card.Img
+                    variant="bottom"
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyzTWQoCUbRNdiyorem5Qp1zYYhpliR9q0Bw&s"
+                    className="comment-img rounded-circle border border-light"
+                    style={{ width: "50px", height: "50px" }}
+                  />
+                  <div className="comment-body w-100">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <strong className="fs-5">{comment.username}</strong>
+                      <div className="d-flex align-items-center gap-2 text-muted small">
+                        <FontAwesomeIcon
+                          icon={faDotCircle}
+                          className="dot-icon"
+                        />
+                        <span>{formatTime(comment.createdAt)}</span>
+                      </div>
+                      {authState.username === comment.username && (
+                        <FontAwesomeIcon
+                          icon={faTrashCan}
+                          className="delete-icon text-danger cursor-pointer"
+                          onClick={() => deleteComment(comment.id)}
+                          style={{ fontSize: "1.2rem" }}
+                        />
+                      )}
                     </div>
-                    {authState.username === comment.username && (
-                      <FontAwesomeIcon
-                        icon={faTrashCan}
-                        className="delete-icon text-danger cursor-pointer"
-                        onClick={() => deleteComment(comment.id)}
-                        style={{ fontSize: "1.2rem" }}
-                      />
-                    )}
+                    <p className="mb-0 text-secondary">{comment.commentBody}</p>
                   </div>
-                  <p className="mb-0 text-secondary">{comment.commentBody}</p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <hr />
+          <hr />
 
-        {/* Add comment section */}
-        <div className="addCommentContainer d-flex flex-column mt-4">
-          <textarea
-            type="text"
-            className="form-control border-2 rounded-2 p-3"
-            placeholder="Add a comment..."
-            value={newComment}
-            onChange={(event) => setNewComment(event.target.value)}
-          />
-          <button
-            onClick={addComment}
-            className="btn btn-primary align-self-end mt-8 px-4 py-2"
-          >
-            Add Comment
-          </button>
+          {/* Add comment section */}
+          <div className="addCommentContainer d-flex flex-column mt-4">
+            <textarea
+              type="text"
+              className="form-control border-2 rounded-2 p-3"
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(event) => setNewComment(event.target.value)}
+            />
+            <button
+              onClick={addComment}
+              className="btn btn-primary align-self-end mt-8 px-4 py-2"
+            >
+              Add Comment
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

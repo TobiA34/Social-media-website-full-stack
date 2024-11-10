@@ -2,6 +2,7 @@
  const router = express.Router();
  const { Steps } = require("../models");
  const { validateToken } = require("../middlewares/Authmiddlewares");
+const { INTERNAL_SERVER_ERROR, NOT_FOUND } = require("../../frontend/src/Constants/statusCodes");
 
 router.get("/:recipeId", async (req, res) => {
   const { recipeId, userId } = req.params;
@@ -16,7 +17,7 @@ router.get("/:recipeId", async (req, res) => {
   } catch (error) {
     console.error(error);
     res
-      .status(500)
+      .status(INTERNAL_SERVER_ERROR)
       .json({ error: "An error occurred while fetching the steps." });
   }
 });
@@ -40,7 +41,7 @@ router.post("/:recipeId", async (req, res) => {
     res.json(newStep);
   } catch (error) {
     res
-      .status(500)
+      .status(INTERNAL_SERVER_ERROR)
       .json({ error: "An error occurred while creating the step." });
   }
 });
@@ -65,11 +66,11 @@ router.delete("/:stepsId", validateToken, async (req, res) => {
      if (steps) {
        res.json(steps);
      } else {
-       res.status(404).json({ error: "Steps not found" });
+       res.status(NOT_FOUND).json({ error: "Steps not found" });
      }
    } catch (error) {
      console.error("Error fetching steps:", error);
-     res.status(500).json({ error: "An error occurred while fetching steps" });
+     res.status(INTERNAL_SERVER_ERROR).json({ error: "An error occurred while fetching steps" });
    }
  });
  
@@ -84,12 +85,12 @@ router.put("/update/:id", async (req, res) => {
     );
 
     if (updated[0] === 0) {
-      return res.status(404).json({ error: "Step not found" });
+      return res.status(NOT_FOUND).json({ error: "Step not found" });
     }
 
     res.json({ message: "Step updated successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 });
  module.exports = router;

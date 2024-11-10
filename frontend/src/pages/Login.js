@@ -15,7 +15,9 @@ import {
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
+  
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -34,21 +36,18 @@ function Login() {
     const data = { username, password };
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/auth/login",
-        data
-      );
+      const response = await axios.post(`${API_BASE_URL}auth/login`, data);
 
       if (response.data.error) {
         setError(response.data.error);
       } else {
-        localStorage.setItem("accessToken", response.data.token);
+        localStorage.setItem(ACCESS_TOKEN, response.data.token);
         setAuthState({
           username: response.data.username,
           id: response.data.id,
           status: true,
         });
-        navigate("/"); // Redirect to the homepage after successful login
+        navigate("/");
       }
     } catch (error) {
       setError("An error occurred during login");

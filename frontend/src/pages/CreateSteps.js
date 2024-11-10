@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
  
 function CreateSteps({ closeModal = () => {}, setRefresh, refresh }) {
   const { id } = useParams(); 
@@ -14,7 +16,7 @@ function CreateSteps({ closeModal = () => {}, setRefresh, refresh }) {
   let navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/recipe/byId/${id}`).then((response) => {
+    axios.get(`${API_BASE_URL}recipe/byId/${id}`).then((response) => {
       setPostObject(response.data);
     });
   }, []);
@@ -29,12 +31,12 @@ function CreateSteps({ closeModal = () => {}, setRefresh, refresh }) {
 
     axios
       .post(
-        `http://localhost:3001/steps/${id}`,
+        `${API_BASE_URL}steps/${id}`,
         {
           step_name: newSteps,
         },
         {
-          headers: { accessToken: localStorage.getItem("accessToken") },
+          headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
         }
       )
       .then((response) => {
