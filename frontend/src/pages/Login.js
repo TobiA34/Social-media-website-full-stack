@@ -1,10 +1,20 @@
+// src/pages/Login.js
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
-import { Form, Button, Card, Alert, InputGroup, Container, Row, Col } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import {
+  Form,
+  Button,
+  Alert,
+  InputGroup,
+  Container,
+  Row,
+  Col,
+  Card,
+} from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -12,12 +22,23 @@ function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { setAuthState } = useContext(AuthContext);
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const login = () => {
+  const login = async () => {
     setError("");
-    const data = { username: username, password: password };
-    axios.post("http://localhost:3001/auth/login", data).then((response) => {
+    if (!username || !password) {
+      setError("Both username and password are required");
+      return;
+    }
+
+    const data = { username, password };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/auth/login",
+        data
+      );
+
       if (response.data.error) {
         setError(response.data.error);
       } else {
@@ -27,9 +48,12 @@ function Login() {
           id: response.data.id,
           status: true,
         });
-        navigate("/");
+        navigate("/"); // Redirect to the homepage after successful login
       }
-    });
+    } catch (error) {
+      setError("An error occurred during login");
+      console.error(error);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -41,7 +65,7 @@ function Login() {
       fluid
       className="d-flex align-items-center justify-content-center vh-100 bg-light"
     >
-      <Row className="d-flex align-items-center justify-content-center vh-100justify-content-center w-100">
+      <Row className="d-flex align-items-center justify-content-center w-100">
         <Col xs={12} sm={10} md={8} lg={6} xl={5}>
           <Card className="shadow-lg">
             <Card.Body className="p-5">
@@ -56,9 +80,9 @@ function Login() {
                 <Form.Group className="mb-3" controlId="username">
                   <Form.Label>Username</Form.Label>
                   <Form.Control
-                    className="w-100"
                     type="text"
                     placeholder="Enter your username"
+                    value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </Form.Group>
@@ -68,6 +92,7 @@ function Login() {
                     <Form.Control
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <Button

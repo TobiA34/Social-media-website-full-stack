@@ -39,7 +39,7 @@ function CreateCategories() {
 
   return (
     <div>
-      <div className="createPostPage d-flex flex-column ">
+      <div className="createPostPage d-flex flex-column align-items-center">
         <h1 className="text-center my-5">Create a category</h1>
 
         <Formik
@@ -47,7 +47,7 @@ function CreateCategories() {
           onSubmit={onSubmit}
           validationSchema={validationSchema}
         >
-          <Form className="formContainer">
+          <Form className="card card-body d-flex gap-3 p-5 w-75">
             <label>Category Name: </label>
             <ErrorMessage name="category_name" component="span" />
             <Field
@@ -55,9 +55,10 @@ function CreateCategories() {
               id="inputCreatePost"
               name="category_name"
               placeholder="(Ex. Title...)"
+              className="form-control border border-2"
             />
 
-            <button type="submit"> Create Categories</button>
+            <button type="submit" className="btn btn-primary rounded rounded-3 w-100"> Create Categories</button>
           </Form>
         </Formik>
       </div>

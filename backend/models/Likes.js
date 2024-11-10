@@ -1,7 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
   const Likes = sequelize.define("Likes", {
-    // Define other columns here
-    UserId: {
+     UserId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

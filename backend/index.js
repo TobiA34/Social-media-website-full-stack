@@ -7,12 +7,10 @@ app.use(cors());
 
 const db = require("./models");
 
-// Routers
-const recipeRouter = require("./routes/Recipes");
+ const recipeRouter = require("./routes/Recipes");
 app.use("/recipe", recipeRouter); 
 
-// Routers
- 
+  
 const commentsRouter = require("./routes/Comments");
 app.use("/comments", commentsRouter);
 
@@ -29,6 +27,11 @@ app.use("/likes", likesRouter);
  
 const stepsRouter = require("./routes/Steps");
 app.use("/steps",stepsRouter);
+
+// Test database connection
+db.sequelize.authenticate()
+  .then(() => console.log('Database connected'))
+  .catch(err => console.error('Error connecting to database:', err));
 
 
 db.sequelize.sync().then(() => {
