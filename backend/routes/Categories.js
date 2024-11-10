@@ -3,6 +3,7 @@ const router = express.Router();
 const { Categories, Recipes } = require("../models");
  const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
+const { BAD_REQUEST } = require("../../frontend/src/Constants/statusCodes");
 
 router.get("/", async (req, res) => {
   const listOfCategories = await Categories.findAll();
@@ -14,7 +15,7 @@ router.post("/", validateToken, async (req, res) => {
     category.UserId = req.user.id;
 
    if (!category) {
-     res.status(400).send({
+     res.status(BAD_REQUEST).send({
        error:
          "This category is in use by someone els, please try something else, thanks.",
      });

@@ -22,11 +22,10 @@ import Navbar from "react-bootstrap/Navbar";
 import CreateSteps from "./pages/CreateSteps";
 import YourRecipes from "./pages/YourRecipes";
 import EditRecipe from "./pages/EditRecipe";
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
-import UpdateImage from "./pages/UpdateImage";
-import FooterComp from "./Components/FooterComp";
-
+import { ACCESS_TOKEN } from "./Constants/accessTokens";
+import { API_BASE_URL } from "./Constants/ apiConstants";
+import AllRecipes from "./pages/AllRecipes";
+ 
 function App() {
   const [authState, setAuthState] = useState({
     username: "",
@@ -40,20 +39,20 @@ function App() {
   const handleShow = () => setShow(true);
 
 useEffect(() => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem(ACCESS_TOKEN);
 
   console.log("Token from localStorage:", token);  
 
   if (token) {
     axios
-      .get("http://localhost:3001/auth/auth", {
+      .get(`${API_BASE_URL}/auth/auth`, {
         headers: { accessToken: token },
       })
       .then((response) => {
-        console.log("Auth response:", response.data);  
+        console.log("Auth response:", response.data);
         if (response.data.error) {
           setAuthState({ ...authState, status: false });
-          localStorage.removeItem("accessToken");
+          localStorage.removeItem(ACCESS_TOKEN);
         } else {
           setAuthState({
             username: response.data.username,
@@ -65,7 +64,7 @@ useEffect(() => {
       .catch((error) => {
         console.error("Error during token validation:", error);
         setAuthState({ ...authState, status: false });
-        localStorage.removeItem("accessToken");
+        localStorage.removeItem(ACCESS_TOKEN);
       });
   } else {
     setAuthState({ ...authState, status: false });
@@ -74,7 +73,7 @@ useEffect(() => {
 
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
+    localStorage.removeItem(ACCESS_TOKEN);
     setAuthState({ username: "", id: 0, status: false });
     window.location.href = "/login";
   };
@@ -103,9 +102,16 @@ useEffect(() => {
                 className="w-25"
               />
               <Navbar.Collapse id="basic-navbar-nav">
-                <Nav className="me-auto w-100 justify-content-center">
+                <Nav className="me-auto w-100 justify-content-center align-items-center">
                   {!authState.status ? (
                     <>
+                      <Nav.Link
+                        as={Link}
+                        to="/offline-recipes"
+                        className="remove-style mx-3 fs-5"
+                      >
+                        Offline Recipes
+                      </Nav.Link>
                       <Link
                         to="/registration"
                         className="remove-style fs-5 mx-3"
@@ -151,7 +157,7 @@ useEffect(() => {
                             {authState.username}
                           </Link>
                         ) : (
-                          <span>{authState.username}</span>  
+                          <span>{authState.username}</span>
                         )}
                       </h5>
                       <button onClick={logout} className="logout-btn">
@@ -166,7 +172,10 @@ useEffect(() => {
 
           <Routes>
             <Route path="/" exact element={<Home />} />
+            <Route path="/offline-recipes" exact element={<AllRecipes />} />
+
             <Route path="/your-recipes/:id" exact element={<YourRecipes />} />
+
             <Route path="/recipe/:id" exact element={<Recipe />} />
             <Route path="/steps/:id" element={<CreateSteps />} />
             <Route path="/createrecipe" exact element={<CreateRecipe />} />
@@ -175,7 +184,6 @@ useEffect(() => {
               exact
               element={<CreateCategories />}
             />
-            <Route path="/update-img/:id" exact element={<UpdateImage />} />
 
             <Route path="/edit/:id" exact element={<EditRecipe />} />
             <Route path="/home/:id" exact element={<Home />} />

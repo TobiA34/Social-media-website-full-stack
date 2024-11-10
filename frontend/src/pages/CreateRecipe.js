@@ -8,6 +8,8 @@ import { Container, Row, Col, Button, Alert } from 'react-bootstrap';
 import { storage } from "../firebase";  
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 
 function CreateRecipe({ onHide }) {
   const { authState } = useContext(AuthContext);
@@ -43,11 +45,11 @@ function CreateRecipe({ onHide }) {
   let navigate = useNavigate();
 
   useEffect(() => {
-    if (!localStorage.getItem("accessToken")) {
+    if (!localStorage.getItem(ACCESS_TOKEN)) {
       navigate("/login");
     }
     axios
-      .get("http://localhost:3001/categories")
+      .get(`${API_BASE_URL}categories`)
       .then((response) => {
         setListOfCategories(response.data);
       })
@@ -112,13 +114,13 @@ function CreateRecipe({ onHide }) {
     }
 
     axios
-      .post("http://localhost:3001/recipe", data, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
+      .post(`${API_BASE_URL}recipe`, data, {
+        headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
       })
       .then((response) => {
         console.log("Recipe created:", response.data);
-        onHide();  
-        window.location.reload();  
+        onHide();
+        window.location.reload();
       })
       .catch((error) => {
         console.error("Error creating recipe:", error);

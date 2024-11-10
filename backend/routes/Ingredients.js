@@ -4,15 +4,21 @@ const express = require("express");
 const router = express.Router();
 const { Ingredients } = require("../models");  
  const { validateToken } = require("../middlewares/Authmiddlewares");
-
-
+const {
+  BAD_REQUEST,
+  CREATED,
+  INTERNAL_SERVER_ERROR,
+  OK,
+  NOT_FOUND
+} = require("../../frontend/src/Constants/statusCodes");
+ 
 
  router.post("/:recipeId", async (req, res) => {
   const { name, unit, quantity, userId } = req.body;  
   const recipeId = req.params.recipeId;  
 
    if (!name || !unit || !quantity || !userId) {
-    return res.status(400).json({ error: "All fields are required." });
+    return res.status(BAD_REQUEST).json({ error: "All fields are required." });
   }
 
   try {
@@ -23,10 +29,12 @@ const { Ingredients } = require("../models");
       RecipeId: recipeId,  
       UserId: userId,  
     });
-    res.status(201).json(newIngredient);  
+    res.status(CREATED).json(newIngredient);  
   } catch (error) {
     console.error("Error creating ingredient:", error);
-    res.status(500).json({ error: "An error occurred while creating the ingredient." });
+    res
+      .status(INTERNAL_SERVER_ERROR)
+      .json({ error: "An error occurred while creating the ingredient." });
   }
 });
  
@@ -37,10 +45,10 @@ router.get("/:recipeId", async (req, res) => {
     const ingredients = await Ingredients.findAll({
       where: { RecipeId: recipeId },  
     });
-    res.status(200).json(ingredients);  s
+    res.status(OK).json(ingredients);  s
   } catch (error) {
     console.error("Error retrieving ingredients:", error);
-    res.status(500).json({ error: "An error occurred while retrieving ingredients." });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "An error occurred while retrieving ingredients." });
   }
 });
 
@@ -55,13 +63,13 @@ router.delete("/:ingredientId", validateToken, async (req, res) => {
     });
 
     if (deletedCount === 0) {
-      return res.status(404).json({ error: "Ingredient not found." });  
+      return res.status(NOT_FOUND).json({ error: "Ingredient not found." });  
     }
 
     res.json("DELETED SUCCESSFULLY");
   } catch (error) {
     console.error("Error deleting ingredient:", error);
-    res.status(500).json({ error: "An error occurred while deleting the ingredient." });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "An error occurred while deleting the ingredient." });
   }
 });
 

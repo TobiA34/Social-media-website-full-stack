@@ -4,6 +4,7 @@ import { storage } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 
 function Registration() {
   const [name, setName] = useState("");
@@ -12,10 +13,9 @@ function Registration() {
   const [imageUpload, setImageUpload] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [imagePath, setImagePath] = useState("");
-  const [error, setError] = useState(""); // Add error state
+  const [error, setError] = useState(""); 
   const navigate = useNavigate();
 
-  // Function to upload the image to Firebase
   const uploadFile = () => {
     return new Promise((resolve, reject) => {
       if (!imageUpload) {
@@ -61,7 +61,7 @@ function Registration() {
       console.log("Sending registration data:", formData);
 
       const response = await axios.post(
-        "http://localhost:3001/auth/register",
+        `${API_BASE_URL}auth/register`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

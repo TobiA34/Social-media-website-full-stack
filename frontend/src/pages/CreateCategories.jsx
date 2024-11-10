@@ -4,7 +4,9 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
- 
+ import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
+
 function CreateCategories() {
 
    const { authState } = useContext(AuthContext);
@@ -15,7 +17,7 @@ function CreateCategories() {
    };
 
    useEffect(() => {
-     if (!localStorage.getItem("accessToken")) {
+     if (!localStorage.getItem(ACCESS_TOKEN)) {
        navigate("/login");
      }
    }, []);
@@ -25,15 +27,16 @@ function CreateCategories() {
 
    const onSubmit = (data) => {
      axios
-       .post("http://localhost:3001/categories", data, {
-         headers: { accessToken: localStorage.getItem("accessToken") },
+       .post(`${API_BASE_URL}categories`, data, {
+         headers: { accessToken: localStorage.getItem(ACCESS_TOKEN) },
        })
        .then((response) => {
          navigate("/");
-       }).catch((error) => {
-                if (error.response){
-                    alert("400 error can't input same value");
-                } 
+       })
+       .catch((error) => {
+         if (error.response) {
+           alert("400 error can't input same value");
+         }
        });
    };
 

@@ -3,6 +3,7 @@ import React from 'react'
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { API_BASE_URL } from '../Constants/ apiConstants';
 
 
 function Categories() {
@@ -12,9 +13,9 @@ function Categories() {
 
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/categories/byuserId/${id}`).then((response) => {
+    axios.get(`${API_BASE_URL}categories/byuserId/${id}`).then((response) => {
       setListOfCategories(response.data);
-      console.log(id)
+      console.log(id);
     });
   }, []);
   return (

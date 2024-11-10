@@ -4,7 +4,12 @@ const { Recipes, Likes,Categories,Steps, Users, Ingredients } = require("../mode
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { where } = require("sequelize");
 const { faker } = require("@faker-js/faker");
- 
+const {
+  INTERNAL_SERVER_ERROR,
+  OK,
+  BAD_REQUEST,
+  NOT_FOUND,
+} = require("../../frontend/src/Constants/statusCodes");
 router.get("/v2", validateToken, async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const page = parseInt(req.query.page) || 1;   
@@ -44,7 +49,29 @@ router.get("/v2", validateToken, async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
+  }
+});
+
+// Route to get all recipes without validationToken
+router.get("/v2/offline", async (req, res) => {
+  try {
+    // Fetch all recipes, including related models (Categories, Steps, and Likes)
+    const listOfRecipes = await Recipes.findAll({
+      include: [
+        { model: Categories, required: false },
+        { model: Steps, required: false },
+        Likes,
+      ],
+    });
+
+    // Return the recipes as a JSON response
+    res.json({
+      listOfRecipes: listOfRecipes,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
   }
 });
   
@@ -63,13 +90,13 @@ router.get("/v2", validateToken, async (req, res) => {
 
      const createdRecipes = await Recipes.bulkCreate(recipes);
 
-    res.status(200).json({
-      message: 'Fake data created successfully',
+    res.status(OK).json({
+      message: "Fake data created successfully",
       data: createdRecipes,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(INTERNAL_SERVER_ERROR).json({
       message: 'An error occurred while creating recipes.',
       error: error.message,
     });
@@ -130,7 +157,7 @@ router.get("/your-recipes/:id", validateToken, async (req, res) => {
   } catch (error) {
     console.error("Error fetching Recipes:", error);
     res
-      .status(500)
+      .status(INTERNAL_SERVER_ERROR)
       .json({ error: "An error occurred while fetching the recipes." });
   }
 });
@@ -142,7 +169,7 @@ router.get("/v2/your-recipes/:id", validateToken, async (req, res) => {
   const offset = (page - 1) * limit;
 
   if (isNaN(limit) || isNaN(page) || page < 1) {
-    return res.status(400).json({ error: "Invalid pagination parameters" });
+    return res.status(BAD_REQUEST).json({ error: "Invalid pagination parameters" });
   }
 
   try {
@@ -178,7 +205,7 @@ router.get("/v2/your-recipes/:id", validateToken, async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
   }
 });
 router.post("/", validateToken, async (req, res) => {
@@ -208,7 +235,7 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
     });
 
     if (deletedCount === 0) {
-      return res.status(404).json({ error: "Recipe not found" });
+      return res.status(NOT_FOUND).json({ error: "Recipe not found" });
     }
 
     res.json({ message: "DELETED SUCCESSFULLY" });
@@ -224,7 +251,7 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
    if (recipe) {
      res.json(recipe);
    } else {
-     res.status(404).json({ error: "Recipe not found" });
+     res.status(NOT_FOUND).json({ error: "Recipe not found" });
    }
  });
  
@@ -239,13 +266,13 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
      );
 
      if (updated) {
-       return res.status(200).json({ message: "Recipe updated successfully" });
+       return res.status(OK).json({ message: "Recipe updated successfully" });
      }
 
-     return res.status(404).json({ message: "Recipe not found" });
+     return res.status(NOT_FOUND).json({ message: "Recipe not found" });
    } catch (error) {
      console.error("Error updating recipe:", error);
-     return res.status(500).json({ message: "Error updating recipe", error });
+     return res.status(INTERNAL_SERVER_ERROR).json({ message: "Error updating recipe", error });
    }
  });
 
@@ -256,7 +283,7 @@ router.put("/byId/:id", async (req, res) => {
   try {
     const existingRecipe = await Recipes.findByPk(id);
     if (!existingRecipe) {
-      return res.status(404).json({ error: "Recipe not found" });
+      return res.status(NOT_FOUND).json({ error: "Recipe not found" });
     }
 
     await existingRecipe.update({ title, desc, avatar });
@@ -266,7 +293,7 @@ router.put("/byId/:id", async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating recipe:", error);
-    res.status(500).json({ error: "Failed to update recipe" });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Failed to update recipe" });
   }
 });
 

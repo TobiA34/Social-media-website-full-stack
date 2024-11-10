@@ -9,15 +9,15 @@ import { useNavigate, Link } from "react-router-dom";
  import Button from "react-bootstrap/Button";
  import Modal from "react-bootstrap/Modal";
  import CreateRecipe from "./CreateRecipe";
-
-import {
+ import {
   ref,
   uploadBytes,
-  getDownloadURL,
-  deleteObject,
+  getDownloadURL
 } from "firebase/storage";
 import { v4 } from "uuid";
-
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
+ 
 function Profile() {
   let navigate = useNavigate();
   const { authState } = useContext(AuthContext);
@@ -36,7 +36,7 @@ function Profile() {
   const [modalShow, setModalShow] = useState(false);
 
   const deleteRecipe = (id) => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem(ACCESS_TOKEN);
 
     if (!accessToken) {
       console.error("User not logged in!");
@@ -45,7 +45,7 @@ function Profile() {
 
     console.log("Deleting recipe with ID:", id);
     axios
-      .delete(`http://localhost:3001/recipe/${id}`, {
+      .delete(`${API_BASE_URL}recipe/${id}`, {
         headers: { accessToken: accessToken },
       })
       .then((response) => {
@@ -91,10 +91,10 @@ function Profile() {
   const getSavedRecipes = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/auth/saved-recipes/${userId}`,
+        `${API_BASE_URL}auth/saved-recipes/${userId}`,
         {
           headers: {
-            accessToken: localStorage.getItem("accessToken"),
+            accessToken: localStorage.getItem(ACCESS_TOKEN),
           },
         }
       );
@@ -149,7 +149,7 @@ function Profile() {
     console.log("Deleting avatar for userId:", userId);
     try {
       const response = await axios.delete(
-        `http://localhost:3001/auth/avatar/${userId}`
+        `${API_BASE_URL}auth/avatar/${userId}`
       );
       console.log(response.data.message);
       setUser((prevUser) => ({ ...prevUser, avatar: null }));
@@ -180,7 +180,7 @@ function Profile() {
       const updatedUser = { ...user, avatar: avatarUrl };
       console.log("Sending registration data:", updatedUser);
       const response = await axios.put(
-        `http://localhost:3001/auth/user/${userId}`,
+        `${API_BASE_URL}auth/user/${userId}`,
         updatedUser
       );
       navigate(`/profile/${userId}`);
@@ -223,8 +223,8 @@ function Profile() {
      localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
 
      try {
-      await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
-        isBookedMarked: !alreadyBookmarked,  
+      await axios.put(`${API_BASE_URL}recipe/${recipeId}/bookmark`, {
+        isBookedMarked: !alreadyBookmarked,
       });
       refreshPage()
       console.log("Bookmark status updated successfully");
@@ -239,7 +239,7 @@ function Profile() {
    }
 
   const fetchUserData = async (userId) => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem(ACCESS_TOKEN);
     if (!token) {
       console.error("No token found, user not logged in.");
       navigate("/login");
@@ -248,7 +248,7 @@ function Profile() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3001/auth/basicinfo/${userId}`,
+        `${API_BASE_URL}auth/basicinfo/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -264,7 +264,7 @@ function Profile() {
 
   return (
     <div>
-      {localStorage.getItem("accessToken") && (
+      {localStorage.getItem(ACCESS_TOKEN) && (
         <>
           <div className="">
             <div className="mt-4">
@@ -370,7 +370,7 @@ function Profile() {
                                   color: bookmarkedRecipes.includes(value.id)
                                     ? "red"
                                     : "grey",
-                                }} // Change color based on bookmark status
+                                }}
                               >
                                 <FontAwesomeIcon icon="heart" />
                               </i>

@@ -10,6 +10,7 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { v4 } from "uuid";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 
 function EditRecipe() {
   const { id } = useParams();
@@ -64,7 +65,7 @@ function EditRecipe() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3001/recipe/byId/${id}`)
+      .get(`${API_BASE_URL}recipe/byId/${id}`)
       .then((response) => {
         console.log("Recipe data fetched:", response.data);
         setRecipe({ title: response.data.title, desc: response.data.desc });
@@ -91,9 +92,9 @@ function EditRecipe() {
       }
 
 axios
-  .put(`http://localhost:3001/recipe/byId/${id}`, {
+  .put(`${API_BASE_URL}recipe/byId/${id}`, {
     title: recipe.title,
-    desc: recipe.desc, // Ensure "desc" is used instead of "recipe"
+    desc: recipe.desc, 
     avatar: avatarUrl,
   })
   .then((response) => {

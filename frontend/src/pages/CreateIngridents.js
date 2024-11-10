@@ -1,12 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";  
 import { AuthContext } from "../helpers/AuthContext";  
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrashCan } from "@fortawesome/free-solid-svg-icons";
-
+import {faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh }) {
   const [newIngrident, setNewIngrident] = useState({
     name: "",
@@ -23,7 +22,9 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
    useEffect(() => {
     const fetchIngredients = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/ingredients/${id}/ingredients`);  
+        const response = await axios.get(
+          `${API_BASE_URL}ingredients/${id}/ingredients`
+        );  
         setIngredients(response.data); 
       } catch (error) {
         console.error("Error fetching ingredients:", error);
@@ -45,26 +46,23 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
   const handleShow = () => setShow(true);
 
   const addIngrident = () => {
-    // Validate input fields
     if (!newIngrident.name || !newIngrident.unit || !newIngrident.quantity) {
       setMessage("Please fill in all fields.");
       return;
     }
-
-
     const userId = authState.id; 
     axios
       .post(
-        `http://localhost:3001/ingredients/${id}`,
+        `${API_BASE_URL}ingredients/${id}`,
         {
           name: newIngrident.name,
           unit: newIngrident.unit,
           quantity: newIngrident.quantity,
-          userId: userId, 
+          userId: userId,
         },
         {
           headers: {
-            accessToken: localStorage.getItem("accessToken"),
+            accessToken: localStorage.getItem(ACCESS_TOKEN),
           },
         }
       )
@@ -72,10 +70,10 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
         if (response.data.error) {
           setMessage(response.data.error);
         } else {
-          console.log("New Ingredient Object:", response.data); 
-          setMessage("Ingredient added successfully!"); 
-          handleClose(); 
-          navigate(`/recipe`); 
+          console.log("New Ingredient Object:", response.data);
+          setMessage("Ingredient added successfully!");
+          handleClose();
+          navigate(`/recipe`);
         }
       })
       .catch((error) => {
@@ -85,7 +83,7 @@ function CreateIngridents({ closeIngridentModal = () => {}, setRefresh, refresh 
             `Error: ${error.response.data.error || "An error occurred."}`
           );
         } else {
-          setMessage("An error occurred while adding the ingredient."); 
+          setMessage("An error occurred while adding the ingredient.");
         }
       });
   };

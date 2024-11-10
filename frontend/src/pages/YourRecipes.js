@@ -12,6 +12,9 @@ import Button from "react-bootstrap/Button";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import Modal from "react-bootstrap/Modal";
 import CreateRecipe from "./CreateRecipe";
+import HeroSection from "../Components/Hero";
+import { ACCESS_TOKEN } from "../Constants/accessTokens";
+import { API_BASE_URL } from "../Constants/ apiConstants";
 
 library.add(fas);
 
@@ -33,11 +36,11 @@ function YourRecipes() {
     const fetchRecipes = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3001/recipe/v2/your-recipes/${authState.id}`,
+          `${API_BASE_URL}recipe/v2/your-recipes/${authState.id}`,
           {
             params: { limit, page },
             headers: {
-              accessToken: localStorage.getItem("accessToken"),
+              accessToken: localStorage.getItem(ACCESS_TOKEN),
             },
           }
         );
@@ -90,34 +93,9 @@ function YourRecipes() {
     setSelectedCategory(event.target.value);
     setPage(1);
   };
-
-    // const likeAPost = (postId) => {
-    // axios
-    //   .post(
-    //     "http://localhost:3001/likes",
-    //     { PostId: postId },
-    //     { headers: { accessToken: localStorage.getItem("accessToken") } }
-    //   )
-    //   .then((response) => {
-    //     setListOfRecipes(
-    //       listOfRecipes.map((post) => {
-    //         if (post.id === postId) {
-    //           if (response.data.liked) {
-    //             return { ...post, Likes: [...post.Likes, 0] };
-    //           } else {
-    //             const likesArray = post.Likes;
-    //             likesArray.pop();
-    //             return { ...post, Likes: likesArray };
-    //           }
-    //         } else {
-    //           return post;
-    //         }
-    //       })
-    //     );
-    //   });
-    // };
+     
   const deleteRecipe = (id) => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem(ACCESS_TOKEN);
 
     if (!accessToken) {
       console.error("User not logged in!");
@@ -126,7 +104,7 @@ function YourRecipes() {
 
     console.log("Deleting recipe with ID:", id);
     axios
-      .delete(`http://localhost:3001/recipe/${id}`, {
+      .delete(`${API_BASE_URL}recipe/${id}`, {
         headers: { accessToken: accessToken },
       })
       .then((response) => {
@@ -162,8 +140,8 @@ function YourRecipes() {
      localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
 
      try {
-      await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
-        isBookedMarked: !alreadyBookmarked, 
+      await axios.put(`${API_BASE_URL}recipe/${recipeId}/bookmark`, {
+        isBookedMarked: !alreadyBookmarked,
       });
       console.log("Bookmark status updated successfully");
     } catch (error) {
@@ -207,30 +185,16 @@ function YourRecipes() {
 
   return (
     <div className="container mt-4">
-      {localStorage.getItem("accessToken") && (
+      {localStorage.getItem(ACCESS_TOKEN) && (
         <>
-          <div className="d-flex justify-content-between align-items-center ">
-            <div>
-              <h1 className="my-4">Your Recipes</h1>
-            </div>
-            <div>
-              <Button variant="primary" onClick={() => setModalShow(true)}>
-                <FontAwesomeIcon icon={faPlus} />
-              </Button>
-              <MyVerticallyCenteredModal
-                show={modalShow}
-                onHide={() => setModalShow(false)}
-              />
-            </div>
-          </div>
-
-          <input
-            type="text"
-            className="form-control mb-3"
-            placeholder="Search for a recipe..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          <HeroSection
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
           />
+
+          <h1 className="  fs-3">
+            <strong>All Recipes</strong>
+          </h1>
           <div className="d-flex justify-content-between mb-3 gap-2">
             <select
               className="form-select"
@@ -273,13 +237,7 @@ function YourRecipes() {
           <div className="row my-4">
             {filteredRecipes.map((value, key) => (
               <div key={key} className="col-12 col-md-6 col-lg-4 mb-4 my-3">
-                <div className="card h-100">
-                  <div className="card-header d-flex justify-content-between">
-                    <h5 className="card-title">{value.title}</h5>
-                    <span className="d-flex badge bg-danger rounded-4 align-items-center">
-                      {value.Category.category_name}
-                    </span>
-                  </div>
+                {/* <div className="card h-100">
                   <i
                     onClick={() => bookmarkRecipe(value.id)}
                     className={`heart ${
@@ -299,7 +257,7 @@ function YourRecipes() {
                         ? value.avatar
                         : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
                     }
-                    className="img-fluid"
+                    className="img-fluid .rounded-card-img"
                     alt=""
                     onClick={() => navigate(`/recipe/${value.id}`)}
                   />
@@ -310,11 +268,86 @@ function YourRecipes() {
                         icon="pencil-alt"
                         onClick={() => navigate(`/edit/${value.id}`)}
                       />
-                      <p className="card-text">{value.dec}</p>
+
+                      <div ref={ref}>
+                        <Button onClick={handleClick} className="share-btn">
+                          {" "}
+                          <FontAwesomeIcon
+                            icon="share"
+                            className="share"
+                            onClick={() => shareRecipe()}
+                          />
+                        </Button>
+
+                        <Overlay
+                          show={show}
+                          target={target}
+                          placement="top"
+                          container={ref}
+                          containerPadding={20}
+                        >
+                          <Popover id="popover-contained">
+                            <Popover.Header as="h3">Share</Popover.Header>
+                            <Popover.Body className="d-flex my-2 gap-1 p-4">
+                              <FacebookShareButton
+                                url="www.google.com"
+                                quote={"hey subscribe"}
+                                title="test123"
+                                hashtag="#dishswap"
+                              >
+                                <FacebookIcon
+                                  size={70}
+                                  round={true}
+                                ></FacebookIcon>
+                              </FacebookShareButton>
+                              <WhatsappShareButton
+                                url="www.google.com"
+                                quote={"hey subscribe"}
+                                title="test123"
+                                hashtag="#dishswap"
+                              >
+                                <WhatsappIcon
+                                  size={70}
+                                  round={true}
+                                ></WhatsappIcon>
+                              </WhatsappShareButton>
+
+                              <EmailShareButton
+                                url={shareUrl}
+                                subject={value.title}
+                                body={value.desc}
+                                className="Demo__some-network__share-button"
+                              >
+                                <EmailIcon size={70} round />
+                              </EmailShareButton>
+                            </Popover.Body>
+                          </Popover>
+                        </Overlay>
+                      </div>
+
                       <FontAwesomeIcon
                         icon="trash"
                         onClick={() => deleteRecipe(value.id)}
                       />
+                    </div>
+                  </div>
+                </div> */}
+
+                <div className="rounded-card remove-bg ">
+                  <img src={value.avatar} className="w-100 rounded-card-img " />
+                  <div className="recipe-card-content">
+                    <div className="d-flex justify-content-between p-3  bg-light rounded-card">
+                      <p className="recipe-title fs-5 ">
+                        <strong>{value.title}</strong>
+                      </p>
+                      <div className="d-flex align-items-center ">
+                        <button
+                          className="rounded-btn "
+                          onClick={() => navigate(`/recipe/${value.id}`)}
+                        >
+                          View recipe <span>→</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

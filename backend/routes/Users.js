@@ -11,6 +11,7 @@ const {
 const bcrypt = require("bcrypt");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { sign } = require("jsonwebtoken");
+const { INTERNAL_SERVER_ERROR, NOT_FOUND, BAD_REQUEST } = require("../../frontend/src/Constants/statusCodes");
 
  router.post("/register", async (req, res) => {
   const { name, username, password, avatar, avatarPath } = req.body;
@@ -18,7 +19,7 @@ const { sign } = require("jsonwebtoken");
   try {
      const existingUser = await Users.findOne({ where: { username } });
     if (existingUser) {
-      return res.status(400).json({ error: "Username already exists" });
+      return res.status(BAD_REQUEST).json({ error: "Username already exists" });
     }
 
      const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,7 +35,7 @@ const { sign } = require("jsonwebtoken");
     res.json({ message: "User created successfully", userId: newUser.id });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
   }
 });
 
@@ -118,7 +119,7 @@ router.delete("/avatar/:id", async (req, res) => {
     res.json({ message: "Avatar deleted successfully" });
   } catch (error) {
     console.error("Error deleting avatar:", error);
-    res.status(500).json({ message: "Error deleting avatar." });
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Error deleting avatar." });
   }
 });
 
@@ -134,13 +135,13 @@ router.post('/auth/user/:userId', async (req, res) => {
     });
 
     if (updatedUser[0] === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(NOT_FOUND).json({ message: 'User not found' });
     }
 
     res.json(updatedUser[1][0]);  
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ error: error.message });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 });
 
@@ -161,7 +162,7 @@ router.post('/auth/user/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching saved recipes:", error); 
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
   }
 });
   

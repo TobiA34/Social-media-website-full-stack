@@ -1,24 +1,23 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import PaginationComponent from "../Components/Pagination";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
- import "../App.css";
+import "../App.css";
 import HeroSection from "../Components/Hero";
-import { ACCESS_TOKEN } from "../Constants/accessTokens";
-  
+import { API_BASE_URL } from "../Constants/ apiConstants";
+ 
 library.add(fas);
 
-function Home() {
+function AllRecipes() {
   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
   const [listOfRecipes, setListOfRecipes] = useState([]);
-   const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [sortState, setSortState] = useState("none");
   const [page, setPage] = useState(1);
@@ -27,43 +26,23 @@ function Home() {
   const [totalPages, setTotalPages] = useState(0);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
 
-
   const startIndex = (page - 1) * limit;
   const endIndex = Math.min(startIndex + limit, totalRecipes);
-  const baseUrl = "http://localhost:3001/recipe/";
-
-
-   const shareUrl = "https://github.com/ayda-tech/react-share-kit";
- 
-  useEffect(() => {
-    const savedBookmarks =
-      JSON.parse(localStorage.getItem("bookmarkedRecipes")) || [];
-    setBookmarkedRecipes(savedBookmarks);
-  }, []);
 
   useEffect(() => {
-    let isMounted = true;
- 
     const fetchRecipes = async () => {
       try {
         const response = await axios.get(
-          `${baseUrl}v2?limit=${limit}&page=${page}`,
-          {
-            headers: {
-              accessToken: localStorage.getItem(ACCESS_TOKEN),
-            },
-          }
+          `${API_BASE_URL}recipe/v2/offline?limit=${limit}&page=${page}`
         );
+
+        console.log("API response:", response.data); // Log API response to inspect structure
 
         const { listOfRecipes, totalRecipes, totalPages } = response.data;
 
         setListOfRecipes(
           listOfRecipes.map((recipe) => ({
             ...recipe,
-            isBookmarked:
-              bookmarkedRecipes.includes(recipe.id) ||
-              recipe.isBookmarked ||
-              false, 
           }))
         );
         setTotalRecipes(totalRecipes || 0);
@@ -77,12 +56,7 @@ function Home() {
     };
 
     fetchRecipes();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, limit, bookmarkedRecipes]);  
-
+  }, [page, limit]);
 
   const handlePageChange = (pageNumber) => {
     setPage(pageNumber);
@@ -102,7 +76,7 @@ function Home() {
     setLimit(limit + 5);
   };
 
- 
+  // Get unique categories for filter dropdown
   const uniqueCategories = [
     ...new Set(
       listOfRecipes
@@ -111,6 +85,7 @@ function Home() {
     ),
   ];
 
+  // Filter and sort recipes
   let filteredRecipes = (listOfRecipes || [])
     .filter((recipe) =>
       recipe.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -130,11 +105,10 @@ function Home() {
       b.title.localeCompare(a.title)
     );
   }
-  
+
   return (
     <div className=" container  container-fluid vh-auto vw-100  mt-4 p-4 remove-bg">
-      {localStorage.getItem(ACCESS_TOKEN) && (
-        <>
+      
           <HeroSection
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -185,101 +159,6 @@ function Home() {
           <div className="row my-4">
             {filteredRecipes.map((value, key) => (
               <div key={key} className="col-12 col-md-6 col-lg-4 mb-4 my-3">
-                {/* <div className="card h-100">
-                  <i
-                    onClick={() => bookmarkRecipe(value.id)}
-                    className={`heart ${
-                      bookmarkedRecipes.includes(value.id) ? "bookmarked" : ""
-                    }`}
-                    style={{
-                      color: bookmarkedRecipes.includes(value.id)
-                        ? "red"
-                        : "grey",
-                    }} // Change color based on bookmark status
-                  >
-                    <FontAwesomeIcon icon="heart" />
-                  </i>
-                  <img
-                    src={
-                      value.avatar
-                        ? value.avatar
-                        : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
-                    }
-                    className="img-fluid .rounded-card-img"
-                    alt=""
-                    onClick={() => navigate(`/recipe/${value.id}`)}
-                  />
-
-                  <div className="card-footer text-center d-flex gap-3">
-                    <div className="card-body d-flex justify-content-between">
-                      <FontAwesomeIcon
-                        icon="pencil-alt"
-                        onClick={() => navigate(`/edit/${value.id}`)}
-                      />
-
-                      <div ref={ref}>
-                        <Button onClick={handleClick} className="share-btn">
-                          {" "}
-                          <FontAwesomeIcon
-                            icon="share"
-                            className="share"
-                            onClick={() => shareRecipe()}
-                          />
-                        </Button>
-
-                        <Overlay
-                          show={show}
-                          target={target}
-                          placement="top"
-                          container={ref}
-                          containerPadding={20}
-                        >
-                          <Popover id="popover-contained">
-                            <Popover.Header as="h3">Share</Popover.Header>
-                            <Popover.Body className="d-flex my-2 gap-1 p-4">
-                              <FacebookShareButton
-                                url="www.google.com"
-                                quote={"hey subscribe"}
-                                title="test123"
-                                hashtag="#dishswap"
-                              >
-                                <FacebookIcon
-                                  size={70}
-                                  round={true}
-                                ></FacebookIcon>
-                              </FacebookShareButton>
-                              <WhatsappShareButton
-                                url="www.google.com"
-                                quote={"hey subscribe"}
-                                title="test123"
-                                hashtag="#dishswap"
-                              >
-                                <WhatsappIcon
-                                  size={70}
-                                  round={true}
-                                ></WhatsappIcon>
-                              </WhatsappShareButton>
-
-                              <EmailShareButton
-                                url={shareUrl}
-                                subject={value.title}
-                                body={value.desc}
-                                className="Demo__some-network__share-button"
-                              >
-                                <EmailIcon size={70} round />
-                              </EmailShareButton>
-                            </Popover.Body>
-                          </Popover>
-                        </Overlay>
-                      </div>
-
-                      <FontAwesomeIcon
-                        icon="trash"
-                        onClick={() => deleteRecipe(value.id)}
-                      />
-                    </div>
-                  </div>
-                </div> */}
 
                 <div className="rounded-card remove-bg ">
                   <img src={value.avatar} className="w-100 rounded-card-img " />
@@ -312,8 +191,6 @@ function Home() {
           <button onClick={loadMore} className="btn btn-secondary mt-4">
             Load More
           </button>
-        </>
-      )}
       <h1 className="mt-2">
         Showing recipes {endIndex} of {totalRecipes}
       </h1>
@@ -321,4 +198,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default AllRecipes;
