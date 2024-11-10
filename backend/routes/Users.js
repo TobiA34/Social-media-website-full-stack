@@ -12,44 +12,29 @@ const bcrypt = require("bcrypt");
 const { validateToken } = require("../middlewares/Authmiddlewares");
 const { sign } = require("jsonwebtoken");
 
-// Define the POST route for user registration
-router.post("/register", validateToken,async(req, res) => {
-  const { name, username, password, avatar } = req.body;
-
-  // Check if the user already exists
-  const existingUser = await Users.findOne({ where: { username: username } });
-  if (existingUser) {
-    return res.status(400).json({ message: "Username already exists." });
-  }
-
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 10);
+ router.post("/register", async (req, res) => {
+  const { name, username, password, avatar, avatarPath } = req.body;
 
   try {
-    // Create a new user
-    const newUser = await Users.create({
-      name: name,
-      username: username,
+     const existingUser = await Users.findOne({ where: { username } });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+     const hashedPassword = await bcrypt.hash(password, 10);
+
+     const newUser = await Users.create({
+      name,
+      username,
       password: hashedPassword,
-      avatar: avatar,
+      avatar,
+      avatarPath,
     });
 
-    // Create an access token for the newly created user
-    const accessToken = sign(
-      { name: newUser.name, username: newUser.username, id: newUser.id, avatar: newUser.avatar },
-      "importantsecret"
-    );
-
-    // Respond with the token and user info
-    res.json({
-      token: accessToken,
-      username: newUser.username,
-      id: newUser.id,
-      avatar: newUser.avatar,
-    });
+    res.json({ message: "User created successfully", userId: newUser.id });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ message: "Error creating user." });
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -63,13 +48,11 @@ router.post("/login", async (req, res) => {
     const { name, username, password, avatar, avatarPath } = req.body;
 
     try {
-      // Check if required fields are provided
-      if (!name || !username || !password || !avatar) {
+       if (!name || !username || !password || !avatar) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Ensure the user creation logic matches your database schema
-      const newUser = await User.create({
+       const newUser = await User.create({
         name,
         username,
         password,
@@ -79,7 +62,7 @@ router.post("/login", async (req, res) => {
 
       res.status(201).json(newUser);
     } catch (error) {
-      console.error("Error creating user:", error); // Log the actual error
+      console.error("Error creating user:", error);  
       res
         .status(500)
         .json({ error: "An error occurred while creating the user" });
@@ -96,7 +79,7 @@ router.post("/login", async (req, res) => {
     res.json({ token: accessToken, username: username, id: user.id });
   });
 });
-
+ 
 router.get("/auth", validateToken, (req, res) => {
   res.json(req.user);
 });
@@ -121,8 +104,7 @@ router.put("/user/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  // Removed avatar from the destroy method
-  await Users.destroy({ where: { id } });
+   await Users.destroy({ where: { id } });
   res.json({ message: "User deleted successfully" });
 });
 
@@ -163,8 +145,7 @@ router.post('/auth/user/:userId', async (req, res) => {
 });
 
 
-// SELECT * FROM Recipes where isBookedMarked = 1 and userId = 2;
-router.get("/saved-recipes/:id", validateToken, async (req, res) => {
+ router.get("/saved-recipes/:id", validateToken, async (req, res) => {
  
   try {
     const listOfRecipes = await Recipes.findAll({
@@ -179,7 +160,7 @@ router.get("/saved-recipes/:id", validateToken, async (req, res) => {
       listOfRecipes: listOfRecipes,
     });
   } catch (error) {
-    console.error("Error fetching saved recipes:", error); // Add more context
+    console.error("Error fetching saved recipes:", error); 
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

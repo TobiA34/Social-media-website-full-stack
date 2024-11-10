@@ -228,16 +228,14 @@ router.delete("/:recipeId", validateToken, async (req, res) => {
    }
  });
  
-// Route to update bookmark status
- router.put("/:id/bookmark", async (req, res) => {
+  router.put("/:id/bookmark", async (req, res) => {
    const { id } = req.params;
    const { isBookedMarked } = req.body;
 
    try {
-     // Find the recipe by ID and update the isBookedMarked field
-     const [updated] = await Recipes.update(
-       { isBookedMarked }, // Updated field
-       { where: { id } } // Condition to find the correct record
+      const [updated] = await Recipes.update(
+       { isBookedMarked },  
+       { where: { id } }  
      );
 
      if (updated) {

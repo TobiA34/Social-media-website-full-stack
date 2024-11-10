@@ -34,23 +34,26 @@ function App() {
     status: false,
   });
 
-    const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false);
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
 
+  console.log("Token from localStorage:", token);  
 
-  useEffect(() => {
+  if (token) {
     axios
       .get("http://localhost:3001/auth/auth", {
-        headers: {
-          accessToken: localStorage.getItem("accessToken"),
-        },
+        headers: { accessToken: token },
       })
       .then((response) => {
+        console.log("Auth response:", response.data);  
         if (response.data.error) {
           setAuthState({ ...authState, status: false });
+          localStorage.removeItem("accessToken");
         } else {
           setAuthState({
             username: response.data.username,
@@ -58,8 +61,17 @@ function App() {
             status: true,
           });
         }
+      })
+      .catch((error) => {
+        console.error("Error during token validation:", error);
+        setAuthState({ ...authState, status: false });
+        localStorage.removeItem("accessToken");
       });
-  }, []);
+  } else {
+    setAuthState({ ...authState, status: false });
+  }
+}, []);
+
 
   const logout = () => {
     localStorage.removeItem("accessToken");
@@ -72,12 +84,11 @@ function App() {
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        // Any resize-related operations here
-      }, 100);
+       }, 100);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
@@ -93,8 +104,6 @@ function App() {
               />
               <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="me-auto w-100 justify-content-center">
-                  {" "}
-                  {/* Centering Nav items */}
                   {!authState.status ? (
                     <>
                       <Link
@@ -112,7 +121,6 @@ function App() {
                       <Nav.Link as={Link} to="/" className="remove-style mx-3">
                         All Recipes
                       </Nav.Link>
-
                       <Nav.Link
                         as={Link}
                         to={`/your-recipes/${authState.id}`}
@@ -120,7 +128,6 @@ function App() {
                       >
                         Your Recipes
                       </Nav.Link>
-
                       <Nav.Link
                         as={Link}
                         to="/createcategories"
@@ -132,31 +139,26 @@ function App() {
                   )}
                 </Nav>
 
-                {/* Aligning loggedInContainer to the right */}
                 <div className="d-flex align-items-center">
-                  {authState.status && (
+                  {authState.status && authState.id ? (
                     <div className="loggedInContainer d-flex align-items-center gap-3">
-                      <h5 onClick={handleShow}>
-                        <Link to={`/profile/${authState.id}`}>{authState.username}</Link>
+                      <h5>
+                        {authState.status && authState.id ? (
+                          <Link
+                            to={`/profile/${authState.id}`}
+                            className="remove-style"
+                          >
+                            {authState.username}
+                          </Link>
+                        ) : (
+                          <span>{authState.username}</span>  
+                        )}
                       </h5>
-                      <button
-                        onClick={logout}
-                        className="logout-btn"
-                      >
+                      <button onClick={logout} className="logout-btn">
                         Logout
                       </button>
                     </div>
-                  )}
-
-                  {/* Profile Modal */}
-                  {/* <Modal show={show} onHide={handleClose} className="w-100">
-                    <Modal.Header closeButton>
-                      <Modal.Title>Profile</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                      <Profile />
-                    </Modal.Body>
-                  </Modal> */}
+                  ) : null}
                 </div>
               </Navbar.Collapse>
             </Navbar>
@@ -184,7 +186,7 @@ function App() {
           </Routes>
         </Router>
       </AuthContext.Provider>
-     </div>
+    </div>
   );
 }
 

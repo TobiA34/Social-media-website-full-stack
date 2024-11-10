@@ -153,26 +153,23 @@ function YourRecipes() {
     // Check if the recipe is already bookmarked
     const alreadyBookmarked = bookmarkedRecipes.includes(recipeId);
 
-    // Toggle bookmark state
-    const updatedBookmarks = alreadyBookmarked
-      ? bookmarkedRecipes.filter((id) => id !== recipeId) // Remove from bookmarks
-      : [...bookmarkedRecipes, recipeId]; // Add to bookmarks
+     const updatedBookmarks = alreadyBookmarked
+      ? bookmarkedRecipes.filter((id) => id !== recipeId)  
+      : [...bookmarkedRecipes, recipeId];  
 
-    setBookmarkedRecipes(updatedBookmarks); // Update local state
+    setBookmarkedRecipes(updatedBookmarks);  
 
-    // Save updated bookmarks to local storage
-    localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
+     localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
 
-    // API call to update bookmark status in the database
-    try {
+     try {
       await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
-        isBookedMarked: !alreadyBookmarked, // Send the opposite of current state
+        isBookedMarked: !alreadyBookmarked, 
       });
       console.log("Bookmark status updated successfully");
     } catch (error) {
       console.error("Error updating bookmark status:", error);
-      // Optionally revert state change if API call fails
-      setBookmarkedRecipes(bookmarkedRecipes); // Reset to previous state on failure
+  
+      setBookmarkedRecipes(bookmarkedRecipes); 
     }
   };
 
@@ -195,8 +192,7 @@ function YourRecipes() {
         : recipe.Category && recipe.Category.category_name === selectedCategory
     );
 
-  // Apply sorting based on sortState
-  if (sortState === "ascending") {
+   if (sortState === "ascending") {
     filteredRecipes = filteredRecipes.sort((a, b) =>
       a.title.localeCompare(b.title)
     );

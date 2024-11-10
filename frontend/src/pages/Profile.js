@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { Card } from "react-bootstrap";
 import { AuthContext } from "../helpers/AuthContext";
-import { storage } from "../firebase"; // Import your Firebase storage configuration
+import { storage } from "../firebase"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate, Link } from "react-router-dom";
  import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -78,12 +78,12 @@ function Profile() {
           return getDownloadURL(snapshot.ref);
         })
         .then((url) => {
-          setImageUrl(url); // Store the image URL in state
-          resolve(url); // Resolve the promise with the URL
+          setImageUrl(url);  
+          resolve(url);  
         })
         .catch((error) => {
           console.error("Error uploading image:", error);
-          reject(error); // Reject the promise if something goes wrong
+          reject(error); 
         });
     });
   };
@@ -98,32 +98,30 @@ function Profile() {
           },
         }
       );
-      console.log("Saved Recipes Response:", response.data); // Log the entire response
+      console.log("Saved Recipes Response:", response.data);  
 
-      // Ensure the response is in the expected format
-      if (response.data && Array.isArray(response.data.listOfRecipes)) {
-        setSavedRecipes(response.data.listOfRecipes); // Set state if it's an array
+       if (response.data && Array.isArray(response.data.listOfRecipes)) {
+        setSavedRecipes(response.data.listOfRecipes);  
       } else {
         console.error("Expected an array but received:", response.data);
-        setSavedRecipes([]); // Reset to empty array if not
+        setSavedRecipes([]);  
       }
     } catch (error) {
       console.error("Error fetching saved recipes:", error);
-      setSavedRecipes([]); // Reset to empty array on error
+      setSavedRecipes([]);  
     }
   };
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setImageUpload(file); // Set the selected file to state
+      setImageUpload(file);  
 
-      // Create a preview of the selected image
-      const reader = new FileReader();
+       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result); // Set the preview URL
+        setImagePreview(reader.result);  
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file); 
     } else {
       alert("No file selected.");
     }
@@ -198,9 +196,10 @@ function Profile() {
   useEffect(() => {
     if (!userId) {
       console.error("UserId is undefined, redirecting to home.");
-      navigate("/");
+      navigate("/"); 
     } else {
       console.log("Fetching user data and saved recipes...");
+
       fetchUserData(userId);
       getSavedRecipes();
       const savedBookmarks =
@@ -209,33 +208,29 @@ function Profile() {
     }
   }, [userId, navigate]);
 
+   
   const bookmarkRecipe = async (recipeId) => {
     console.log("Clicked on recipe ID:", recipeId);
 
-    // Check if the recipe is already bookmarked
-    const alreadyBookmarked = bookmarkedRecipes.includes(recipeId);
+     const alreadyBookmarked = bookmarkedRecipes.includes(recipeId);
 
-    // Toggle bookmark state
-    const updatedBookmarks = alreadyBookmarked
-      ? bookmarkedRecipes.filter((id) => id !== recipeId) // Remove from bookmarks
-      : [...bookmarkedRecipes, recipeId]; // Add to bookmarks
+     const updatedBookmarks = alreadyBookmarked
+      ? bookmarkedRecipes.filter((id) => id !== recipeId)  
+      : [...bookmarkedRecipes, recipeId];  
 
-    setBookmarkedRecipes(updatedBookmarks); // Update local state
+    setBookmarkedRecipes(updatedBookmarks);  
 
-    // Save updated bookmarks to local storage
-    localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
+     localStorage.setItem("bookmarkedRecipes", JSON.stringify(updatedBookmarks));
 
-    // API call to update bookmark status in the database
-    try {
+     try {
       await axios.put(`http://localhost:3001/recipe/${recipeId}/bookmark`, {
-        isBookedMarked: !alreadyBookmarked, // Send the opposite of current state
+        isBookedMarked: !alreadyBookmarked,  
       });
       refreshPage()
       console.log("Bookmark status updated successfully");
     } catch (error) {
       console.error("Error updating bookmark status:", error);
-      // Optionally revert state change if API call fails
-      setBookmarkedRecipes(bookmarkedRecipes); // Reset to previous state on failure
+       setBookmarkedRecipes(bookmarkedRecipes);  
     }
   };
 
@@ -244,7 +239,7 @@ function Profile() {
    }
 
   const fetchUserData = async (userId) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       console.error("No token found, user not logged in.");
       navigate("/login");
@@ -268,147 +263,169 @@ function Profile() {
   };
 
   return (
-    <div className="">
-      <div className="mt-4">
-        <div className="row d-flex justify-content-center w-100">
-          <div className="col-md-11">
-            <div className="p-3 position-relative">
-              <h5 className="my-3">Profile picture</h5>
-              <div className="d-flex align-items-center gap-5 flex-column">
-                <div className="border p-4">
-                  <label htmlFor="">Preview for img</label>
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Image Preview"
-                      className="img-preview img-fluid"
-                    />
-                  )}
-                </div>
-
-                <div className="d-flex gap-3 align-items-center">
-                  <Card.Img
-                    variant="bottom"
-                    src={
-                      user.avatar && user.avatar !== ""
-                        ? `${user.avatar}?t=${new Date().getTime()}`
-                        : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
-                    }
-                    className="avatar img-fluid image-container"
-                    alt="Profile Avatar"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="file-input border h-25"
-                  >
-                    <input
-                      id="file-upload"
-                      type="file"
-                      onChange={handleImageChange}
-                      accept="image/*" // Allow only image files
-                    />
-                  </label>
-                  <button className="btn btn-danger" onClick={deleteAvatar}>
-                    Delete Avatar
-                  </button>
-                </div>
-
-                <button className="btn btn-primary" onClick={handleSubmit}>
-                  Save Image
-                </button>
-              </div>
-            </div>
-
-            {/* Create your own recipes */}
-            <div className="d-flex gap-5 mt-60">
-              <h1>Create Your Own Recipes</h1>
-              <div>
-                <Button variant="primary" onClick={() => setModalShow(true)}>
-                  <FontAwesomeIcon icon={faPlus} />
-                </Button>
-                <MyVerticallyCenteredModal
-                  show={modalShow}
-                  onHide={() => setModalShow(false)}
-                />
-              </div>
-            </div>
-            {/* Saved Recipes */}
+    <div>
+      {localStorage.getItem("accessToken") && (
+        <>
+          <div className="">
             <div className="mt-4">
-              <h4>Saved Recipes</h4>
-              <div className="row mt-4">
-                {savedRecipes.length > 0 ? (
-                  savedRecipes.map((value, key) => (
-                    <div
-                      key={key}
-                      className="col-12 col-md-6 col-lg-4 mb-4 my-3"
-                    >
-                      <div className="card h-100">
-                        <div className="card-header d-flex justify-content-between">
-                          <h5 className="card-title">{value.title}</h5>
-                          <span className="d-flex badge bg-danger rounded-4 align-items-center">
-                            {value.Category.category_name}
-                          </span>
-                        </div>
-                        <i
-                          onClick={() => bookmarkRecipe(value.id)}
-                          className={`heart ${
-                            bookmarkedRecipes.includes(value.id)
-                              ? "bookmarked"
-                              : ""
-                          }`}
-                          style={{
-                            color: bookmarkedRecipes.includes(value.id)
-                              ? "red"
-                              : "grey",
-                          }} // Change color based on bookmark status
-                        >
-                          <FontAwesomeIcon icon="heart" />
-                        </i>
-                        <div>
+              <div className="row d-flex justify-content-center w-100">
+                <div className="col-md-11">
+                  <div className="p-3 position-relative">
+                    <h5 className="my-3">Profile picture</h5>
+                    <div className="d-flex align-items-center gap-5 flex-column card p-5">
+                      <div className="border p-4">
+                        <label htmlFor="">Preview for img</label>
+                        {imagePreview && (
                           <img
-                            src={
-                              value.avatar
-                                ? value.avatar
-                                : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
-                            }
-                            className="img-fluid"
-                            alt=""
-                            onClick={() => navigate(`/recipe/${value.id}`)}
+                            src={imagePreview}
+                            alt="Image Preview"
+                            className="img-preview img-fluid"
                           />
+                        )}
+                      </div>
+
+                      <div className="d-flex gap-3 align-items-center flex-column">
+                        <Card.Img
+                          variant="bottom"
+                          src={
+                            user.avatar && user.avatar !== ""
+                              ? `${user.avatar}?t=${new Date().getTime()}`
+                              : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                          }
+                          className="avatar img-fluid image-container"
+                          alt="Profile Avatar"
+                        />
+                        <label
+                          htmlFor="file-upload"
+                          className="file-input border h-25"
+                        >
+                          <input
+                            id="file-upload"
+                            type="file"
+                            onChange={handleImageChange}
+                            accept="image/*"
+                          />
+                        </label>
+
+                        <div className="d-flex flex-row">
+                          <button
+                            className="btn btn-danger"
+                            onClick={deleteAvatar}
+                          >
+                            Delete Avatar
+                          </button>
                         </div>
 
-                        <div className="card-footer d-flex justify-content-between align-items-center">
-                          <Link
-                            to={`/profile/${value.UserId}`}
-                            className="link-primary"
-                          >
-                            {value.username}
-                          </Link>
-                        </div>
-                        <div className="card-footer text-center d-flex gap-3">
-                          <div className="card-body d-flex justify-content-between">
-                            <FontAwesomeIcon
-                              icon="pencil-alt"
-                              onClick={() => navigate(`/edit/${value.id}`)}
-                            />
-                            <p className="card-text">{value.dec}</p>
-                            <FontAwesomeIcon
-                              icon="trash"
-                              onClick={() => deleteRecipe(value.id)}
-                            />
-                          </div>
-                        </div>
+                        <button
+                          className="btn btn-primary"
+                          onClick={handleSubmit}
+                        >
+                          Save Image
+                        </button>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p>No saved recipes found.</p> // Provide feedback if no recipes are saved
-                )}
+                  </div>
+
+                  {/* Create your own recipes */}
+                  <div className="d-flex gap-5 mt-60">
+                    <h1>Create Your Own Recipes</h1>
+                    <div>
+                      <Button
+                        variant="primary"
+                        onClick={() => setModalShow(true)}
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                      </Button>
+                      <MyVerticallyCenteredModal
+                        show={modalShow}
+                        onHide={() => setModalShow(false)}
+                      />
+                    </div>
+                  </div>
+                  {/* Saved Recipes */}
+                  <div className="mt-24 card p-5">
+                    <h4>Saved Recipes</h4>
+                    <div className="row mt-4">
+                      {savedRecipes.length > 0 ? (
+                        savedRecipes.map((value, key) => (
+                          <div
+                            key={key}
+                            className="col-12 col-md-6 col-lg-4 mb-4 my-3"
+                          >
+                            <div className="card h-100">
+                              <div className="card-header d-flex justify-content-between">
+                                <h5 className="card-title">{value.title}</h5>
+                                <span className="d-flex badge bg-danger rounded-4 align-items-center">
+                                  {value.Category.category_name}
+                                </span>
+                              </div>
+                              <i
+                                onClick={() => bookmarkRecipe(value.id)}
+                                className={`heart ${
+                                  bookmarkedRecipes.includes(value.id)
+                                    ? "bookmarked"
+                                    : ""
+                                }`}
+                                style={{
+                                  color: bookmarkedRecipes.includes(value.id)
+                                    ? "red"
+                                    : "grey",
+                                }} // Change color based on bookmark status
+                              >
+                                <FontAwesomeIcon icon="heart" />
+                              </i>
+                              <div>
+                                <img
+                                  src={
+                                    value.avatar
+                                      ? value.avatar
+                                      : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
+                                  }
+                                  className="img-fluid"
+                                  alt=""
+                                  onClick={() =>
+                                    navigate(`/recipe/${value.id}`)
+                                  }
+                                />
+                              </div>
+
+                              <div className="card-footer d-flex justify-content-between align-items-center">
+                                <Link
+                                  to={`/profile/${value.UserId}`}
+                                  className="link-primary"
+                                >
+                                  {value.username}
+                                </Link>
+                              </div>
+                              <div className="card-footer text-center d-flex gap-3">
+                                <div className="card-body d-flex justify-content-between">
+                                  <FontAwesomeIcon
+                                    icon="pencil-alt"
+                                    onClick={() =>
+                                      navigate(`/edit/${value.id}`)
+                                    }
+                                  />
+                                  <p className="card-text">{value.dec}</p>
+                                  <FontAwesomeIcon
+                                    icon="trash"
+                                    onClick={() => deleteRecipe(value.id)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p>No saved recipes found.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
