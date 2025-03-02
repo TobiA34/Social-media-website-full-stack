@@ -1,5 +1,4 @@
-// src/pages/Login.js
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
@@ -17,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { ACCESS_TOKEN } from "../Constants/accessTokens";
 import { API_BASE_URL } from "../Constants/ apiConstants";
-  
+
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +24,18 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { setAuthState } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if token is already stored in localStorage
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    if (token) {
+      // If token exists, set the authentication state and navigate to home page
+      setAuthState({
+        status: true, // User is logged in
+      });
+      navigate("/"); // Redirect to home or dashboard page
+    }
+  }, [setAuthState, navigate]);
 
   const login = async () => {
     setError("");
@@ -47,7 +58,7 @@ function Login() {
           id: response.data.id,
           status: true,
         });
-        navigate("/");
+        navigate("/"); // Navigate to home/dashboard after login
       }
     } catch (error) {
       setError("An error occurred during login");

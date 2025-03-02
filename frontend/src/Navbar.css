@@ -1,0 +1,161 @@
+/* Light Mode */
+.light-mode {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Dark Mode */
+.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* Fix Recipe Card Styles */
+.recipe-card {
+  transition: background-color 0.3s, color 0.3s;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+/* Dark Mode Recipe Card */
+.card-dark {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+
+/* Light Mode Recipe Card */
+.card-light {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Fix Recipe Titles */
+.dark-mode .recipe-title {
+  color: white !important;
+}
+
+.light-mode .recipe-title {
+  color: black !important;
+}
+
+/* Fix Button Styles */
+.btn-dark {
+  background-color: #444 !important;
+  color: white !important;
+  border: 1px solid white;
+}
+
+.btn-light {
+  background-color: #f8f9fa !important;
+  color: black !important;
+  border: 1px solid black;
+}
+
+/* Dark mode styles */
+.dark-mode {
+  background-color: #121212;
+  color: white !important;
+}
+
+.card-dark {
+  background-color: #1e1e1e;
+  color: white !important;
+}
+
+/* Ensure text inside cards is white in dark mode */
+.dark-mode .recipe-title {
+  color: white !important;
+}
+
+/* Fix button color */
+.dark-mode .rounded-btn {
+  background-color: #333;
+  color: white !important;
+  border: 1px solid white;
+}
+
+/* Light Mode */
+.navbar-light-mode {
+  background-color: #f8f9fa !important;
+  color: black !important;
+}
+
+.navbar-light-mode .remove-style {
+  color: black !important;
+}
+
+.navbar-light-mode .logout-btn {
+  background-color: red;
+  color: white;
+}
+
+/* Dark Mode */
+.navbar-dark-mode {
+  background-color: #121212 !important;
+  color: white !important;
+}
+
+.navbar-dark-mode .remove-style {
+  color: white !important;
+}
+
+.navbar-dark-mode .logout-btn {
+  background-color: red;
+  color: white;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  border: 1px solid white;
+  color: white;
+}
+
+.navbar-light-mode .theme-toggle-btn {
+  border: 1px solid black;
+  color: black;
+}
+
+/* Global Dark Mode */
+.dark-mode {
+  background-color: #121212 !important;
+  color: white !important;
+}
+
+.light-mode {
+  background-color: #ffffff !important;
+  color: black !important;
+}
+
+/* Recipe Card Dark Mode */
+.card-dark {
+  background-color: #1e1e1e !important;
+  color: white !important;
+  border: 1px solid #333;
+}
+
+.card-light {
+  background-color: #fff !important;
+  color: black !important;
+  border: 1px solid #ddd;
+}
+
+/* Button Styling */
+.btn-dark-mode {
+  background-color: #333 !important;
+  color: white !important;
+  border: 1px solid white !important;
+}
+
+.btn-light-mode {
+  background-color: #f8f9fa !important;
+  color: black !important;
+  border: 1px solid black !important;
+}
+
+.text-light {
+  color: white !important;
+}
+
+.text-dark {
+  color: black !important;
+}

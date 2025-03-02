@@ -25,13 +25,17 @@ import EditRecipe from "./pages/EditRecipe";
 import { ACCESS_TOKEN } from "./Constants/accessTokens";
 import { API_BASE_URL } from "./Constants/ apiConstants";
 import AllRecipes from "./pages/AllRecipes";
- 
+import NavigationBar from "./Components/Navigationbar";
+import { useTheme } from "./context/ThemeContext";
+import "./Navbar.css";
+
 function App() {
   const [authState, setAuthState] = useState({
     username: "",
     id: 0,
     status: false,
   });
+  const { darkMode, toggleTheme } = useTheme();
 
   const [show, setShow] = useState(false);
 
@@ -39,36 +43,65 @@ function App() {
   const handleShow = () => setShow(true);
 
 useEffect(() => {
-  const token = localStorage.getItem(ACCESS_TOKEN);
+const ACCESS_TOKEN = "accessToken";
+let token = null;
 
-  console.log("Token from localStorage:", token);  
+try {
+  token =
+    localStorage.getItem(ACCESS_TOKEN) || sessionStorage.getItem(ACCESS_TOKEN);
+} catch (error) {
+  console.log("🚫 localStorage blocked, token retrieval failed:", error);
+}
 
-  if (token) {
-    axios
-      .get(`${API_BASE_URL}/auth/auth`, {
-        headers: { accessToken: token },
-      })
-      .then((response) => {
-        console.log("Auth response:", response.data);
-        if (response.data.error) {
-          setAuthState({ ...authState, status: false });
+if (token) {
+  console.log("🔍 Checking token:", token);
+
+  axios
+    .get(`${API_BASE_URL}/auth`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((response) => {
+      console.log("✅ Auth success:", response.data);
+
+      if (response.data?.error) {
+        console.warn("⚠️ Authentication error:", response.data.error);
+        setAuthState({ username: "", id: null, status: false });
+        localStorage.removeItem(ACCESS_TOKEN);
+      } else {
+        setAuthState({
+          username: response.data.username,
+          id: response.data.id,
+          status: true,
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Auth failed:", error);
+
+      if (error.response) {
+        const status = error.response.status;
+
+        if (status === 404) {
+          console.error("🔎 API endpoint not found! Check API_BASE_URL.");
+        } else if (status === 401) {
+          console.warn("🚫 Unauthorized! Token may be expired.");
           localStorage.removeItem(ACCESS_TOKEN);
         } else {
-          setAuthState({
-            username: response.data.username,
-            id: response.data.id,
-            status: true,
-          });
+          console.warn("⚠️ Server error:", status, error.response.data);
         }
-      })
-      .catch((error) => {
-        console.error("Error during token validation:", error);
-        setAuthState({ ...authState, status: false });
-        localStorage.removeItem(ACCESS_TOKEN);
-      });
-  } else {
-    setAuthState({ ...authState, status: false });
-  }
+      } else {
+        console.error("🌐 No response received. Check network/API server.");
+      }
+
+      setAuthState({ username: "", id: null, status: false });
+      localStorage.removeItem(ACCESS_TOKEN);
+    });
+} else {
+  console.warn("⚠️ No token found. User not logged in.");
+  setAuthState({ username: "", id: null, status: false });
+}
+
+
 }, []);
 
 
@@ -91,83 +124,17 @@ useEffect(() => {
   }, []);
 
   return (
-    <div className="">
+    <div
+      className={`row my-4 navbar ${
+        darkMode
+          ? "navbar-dark bg-dark navbar-dark-mode"
+          : "navbar-light bg-light navbar-light-mode"
+      }`}
+    >
       <AuthContext.Provider value={{ authState, setAuthState }}>
         <Router>
           <div>
-            <Navbar expand="lg" className="bg-body-tertiary p-3">
-              <Navbar.Brand href="#/">DishSwap</Navbar.Brand>
-              <Navbar.Toggle
-                aria-controls="basic-navbar-nav"
-                className="w-25"
-              />
-              <Navbar.Collapse id="basic-navbar-nav">
-                <Nav className="me-auto w-100 justify-content-center align-items-center">
-                  {!authState.status ? (
-                    <>
-                      <Nav.Link
-                        as={Link}
-                        to="/offline-recipes"
-                        className="remove-style mx-3 fs-5"
-                      >
-                        Offline Recipes
-                      </Nav.Link>
-                      <Link
-                        to="/registration"
-                        className="remove-style fs-5 mx-3"
-                      >
-                        Registration
-                      </Link>
-                      <Link to="/login" className="remove-style fs-5 mx-3">
-                        Login
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Nav.Link as={Link} to="/" className="remove-style mx-3">
-                        All Recipes
-                      </Nav.Link>
-                      <Nav.Link
-                        as={Link}
-                        to={`/your-recipes/${authState.id}`}
-                        className="remove-style mx-3"
-                      >
-                        Your Recipes
-                      </Nav.Link>
-                      <Nav.Link
-                        as={Link}
-                        to="/createcategories"
-                        className="remove-style mx-3"
-                      >
-                        Create Categories
-                      </Nav.Link>
-                    </>
-                  )}
-                </Nav>
-
-                <div className="d-flex align-items-center">
-                  {authState.status && authState.id ? (
-                    <div className="loggedInContainer d-flex align-items-center gap-3">
-                      <h5>
-                        {authState.status && authState.id ? (
-                          <Link
-                            to={`/profile/${authState.id}`}
-                            className="remove-style"
-                          >
-                            {authState.username}
-                          </Link>
-                        ) : (
-                          <span>{authState.username}</span>
-                        )}
-                      </h5>
-                      <button onClick={logout} className="logout-btn">
-                        Logout
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </Navbar.Collapse>
-            </Navbar>
+            <NavigationBar />
           </div>
 
           <Routes>

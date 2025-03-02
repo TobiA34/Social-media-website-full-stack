@@ -43,44 +43,19 @@ const { INTERNAL_SERVER_ERROR, NOT_FOUND, BAD_REQUEST } = require("../../fronten
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  const user = await Users.findOne({ where: { username: username } });
+  const user = await Users.findOne({ where: { username } });
 
-  if (!user) res.json({ error: "User Doesn't Exist" });router.post("/", async (req, res) => {
-    const { name, username, password, avatar, avatarPath } = req.body;
-
-    try {
-       if (!name || !username || !password || !avatar) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-       const newUser = await User.create({
-        name,
-        username,
-        password,
-        avatar,
-        avatarPath,
-      });
-
-      res.status(201).json(newUser);
-    } catch (error) {
-      console.error("Error creating user:", error);  
-      res
-        .status(500)
-        .json({ error: "An error occurred while creating the user" });
-    }
-  });
+  if (!user) {
+    return res.json({ error: "User Doesn't Exist" });
+  }
 
   bcrypt.compare(password, user.password).then(async (match) => {
-    if (!match) res.json({ error: "Wrong Username And Password Combination" });
+    if (!match) return res.json({ error: "Wrong Username And Password Combination" });
 
-    const accessToken = sign(
-      { username: user.username, id: user.id },
-      "importantsecret"
-    );
-    res.json({ token: accessToken, username: username, id: user.id });
+    const accessToken = sign({ username: user.username, id: user.id }, "importantsecret");
+    res.json({ token: accessToken, username: user.username, id: user.id });
   });
 });
- 
 router.get("/auth", validateToken, (req, res) => {
   res.json(req.user);
 });

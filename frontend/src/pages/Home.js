@@ -7,18 +7,21 @@ import PaginationComponent from "../Components/Pagination";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTheme } from "../context/ThemeContext";
+import "../Navbar.css";  
 
- import "../App.css";
+import "../App.css";
 import HeroSection from "../Components/Hero";
 import { ACCESS_TOKEN } from "../Constants/accessTokens";
-  
+
 library.add(fas);
 
 function Home() {
+  const { darkMode, toggleTheme } = useTheme();
   const { authState } = useContext(AuthContext);
   let navigate = useNavigate();
   const [listOfRecipes, setListOfRecipes] = useState([]);
-   const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [sortState, setSortState] = useState("none");
   const [page, setPage] = useState(1);
@@ -27,14 +30,12 @@ function Home() {
   const [totalPages, setTotalPages] = useState(0);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
 
-
   const startIndex = (page - 1) * limit;
   const endIndex = Math.min(startIndex + limit, totalRecipes);
   const baseUrl = "http://localhost:3001/recipe/";
 
+  const shareUrl = "https://github.com/ayda-tech/react-share-kit";
 
-   const shareUrl = "https://github.com/ayda-tech/react-share-kit";
- 
   useEffect(() => {
     const savedBookmarks =
       JSON.parse(localStorage.getItem("bookmarkedRecipes")) || [];
@@ -43,7 +44,7 @@ function Home() {
 
   useEffect(() => {
     let isMounted = true;
- 
+
     const fetchRecipes = async () => {
       try {
         const response = await axios.get(
@@ -63,7 +64,7 @@ function Home() {
             isBookmarked:
               bookmarkedRecipes.includes(recipe.id) ||
               recipe.isBookmarked ||
-              false, 
+              false,
           }))
         );
         setTotalRecipes(totalRecipes || 0);
@@ -81,8 +82,7 @@ function Home() {
     return () => {
       isMounted = false;
     };
-  }, [page, limit, bookmarkedRecipes]);  
-
+  }, [page, limit, bookmarkedRecipes]);
 
   const handlePageChange = (pageNumber) => {
     setPage(pageNumber);
@@ -102,7 +102,6 @@ function Home() {
     setLimit(limit + 5);
   };
 
- 
   const uniqueCategories = [
     ...new Set(
       listOfRecipes
@@ -130,7 +129,7 @@ function Home() {
       b.title.localeCompare(a.title)
     );
   }
-  
+
   return (
     <div className=" container  container-fluid vh-auto vw-100  mt-4 p-4 remove-bg">
       {localStorage.getItem(ACCESS_TOKEN) && (
@@ -283,9 +282,15 @@ function Home() {
 
                 <div className="rounded-card remove-bg ">
                   <img src={value.avatar} className="w-100 rounded-card-img " />
-                  <div className="recipe-card-content">
-                    <div className="d-flex justify-content-between p-3  bg-light rounded-card">
-                      <p className="recipe-title fs-5 ">
+                  <div className="">
+                    <div
+                      className="d-flex rounded-card justify-content-between p-3    "
+                      style={{ background: darkMode ? "white" : "black" }}
+                    >
+                      <p
+                        className="recipe-title fs-5 "
+                        style={{ color: darkMode ? "black" : "white" }}
+                      >
                         <strong>{value.title}</strong>
                       </p>
                       <div className="d-flex align-items-center ">
