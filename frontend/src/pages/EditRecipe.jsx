@@ -144,8 +144,8 @@ axios
           src={
             user.avatar && user.avatar !== ""
               ? `${user.avatar}?t=${new Date().getTime()}`
-              : "https://media.istockphoto.com/id/1354776457/vector/default-image-icon-vector-missing-picture-page-for-website-design-or-mobile-app-no-photo.jpg?s=612x612&w=0&k=20&c=w3OW0wX3LyiFRuDHo9A32Q0IUMtD4yjXEvQlqyYk9O4="
-          }  
+              : "https://placehold.co/600x400/000000/FFFFFF/png"
+          }
           className="avatar img-fluid image-container"
           alt="Profile Avatar"
         />
@@ -155,7 +155,7 @@ axios
             <img
               src={imagePreview}
               alt="Image Preview"
-              className="img-preview img-fluid"  
+              className="img-preview img-fluid"
             />
           )}
         </div>
@@ -163,7 +163,7 @@ axios
           id="file-upload"
           type="file"
           accept="image/*"
-          onChange={handleImageChange}  
+          onChange={handleImageChange}
           className="form-control"
           required
         />

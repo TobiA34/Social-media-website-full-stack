@@ -158,12 +158,10 @@ width: 40px;
 
 .rounded-card {
   border-radius: 0px 0px 28px 28px;
-  background: white;
-}
+ }
 
 .rounded-card-img {
   border-radius: 28px 28px 0px 0px;
-
 }
 
 /* Styles for the active link */

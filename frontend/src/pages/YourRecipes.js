@@ -15,11 +15,12 @@ import CreateRecipe from "./CreateRecipe";
 import HeroSection from "../Components/Hero";
 import { ACCESS_TOKEN } from "../Constants/accessTokens";
 import { API_BASE_URL } from "../Constants/ apiConstants";
-
+import { useTheme } from "../context/ThemeContext"; // Import dark mode context
 library.add(fas);
 
 function YourRecipes() {
   const { authState } = useContext(AuthContext);
+  const { darkMode, toggleTheme } = useTheme();
   let navigate = useNavigate();
   const [listOfRecipes, setListOfRecipes] = useState([]);
   const [likedRecipes, setLikedRecipes] = useState([]);
@@ -337,7 +338,10 @@ function YourRecipes() {
                   <img src={value.avatar} className="w-100 rounded-card-img " />
                   <div className="recipe-card-content">
                     <div className="d-flex justify-content-between p-3  bg-light rounded-card">
-                      <p className="recipe-title fs-5 ">
+                      <p
+                        className=""
+                        style={{ color: darkMode ? "white" : "black" }}
+                      >
                         <strong>{value.title}</strong>
                       </p>
                       <div className="d-flex align-items-center ">
